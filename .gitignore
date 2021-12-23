@@ -1,0 +1,32 @@
+# binary
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+./bin/*
+*.pid
+*.test
+go-template
+
+# config
+.idea/
+*/.idea/
+.DS_Store
+test/*.json
+config/go_template.yaml
+
+# output
+*.out
+log/
+*/*.log
+*.log
+
+#other
+archive/*
+release/*
+http-client.env.json
+.vscode/
+.test
+go_template.pid
+go_template.yaml
