@@ -35,9 +35,6 @@ var (
 	// config
 	baseDir string
 	cfgFile string
-	// daemon
-	daemon    bool
-	daemonStr string
 	// log
 	logFileName   string
 	logLevel      string
@@ -45,12 +42,8 @@ var (
 	logMaxSize    int
 	logMaxDays    int
 	logMaxBackups int
-	// server
-	serverAddr         string
-	serverPid          int
-	serverPidFile      string
-	serverReadTimeout  int
-	serverWriteTimeout int
+	// sql
+	sql string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -97,8 +90,6 @@ func init() {
 	// will be global for your application.
 	// config
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", constant.DefaultRandomString, "config file path")
-	// daemon
-	rootCmd.PersistentFlags().StringVar(&daemonStr, "daemon", constant.DefaultRandomString, fmt.Sprintf("whether run in background as a daemon(default: %s)", constant.FalseString))
 	// log
 	rootCmd.PersistentFlags().StringVar(&logFileName, "log-file", constant.DefaultRandomString, fmt.Sprintf("specify the log file name(default: %s)", filepath.Join(config.DefaultLogDir, log.DefaultLogFileName)))
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", constant.DefaultRandomString, fmt.Sprintf("specify the log level(default: %s)", log.DefaultLogLevel))
@@ -106,11 +97,8 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&logMaxSize, "log-max-size", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max size(default: %d)", log.DefaultLogMaxSize))
 	rootCmd.PersistentFlags().IntVar(&logMaxDays, "log-max-days", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max days(default: %d)", log.DefaultLogMaxDays))
 	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max backups(default: %d)", log.DefaultLogMaxBackups))
-	// server
-	rootCmd.PersistentFlags().StringVar(&serverAddr, "server-addr", constant.DefaultRandomString, fmt.Sprintf("specify the server addr(default: %s)", config.DefaultServerAddr))
-	rootCmd.PersistentFlags().StringVar(&serverPidFile, "server-pid-file", constant.DefaultRandomString, fmt.Sprintf("specify the server pid file path(default: %s)", filepath.Join(config.DefaultBaseDir, fmt.Sprintf("%s.pid", config.DefaultCommandName))))
-	rootCmd.PersistentFlags().IntVar(&serverReadTimeout, "server-read-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the read timeout in seconds of http request(default: %d)", config.DefaultServerReadTimeout))
-	rootCmd.PersistentFlags().IntVar(&serverWriteTimeout, "server-write-timeout", constant.DefaultRandomInt, fmt.Sprintf("specify the write timeout in seconds of http request(default: %d)", config.DefaultServerWriteTimeout))
+	// sql
+	rootCmd.PersistentFlags().StringVar(&sql, "sql", constant.DefaultRandomString, fmt.Sprintf("specify the log format(default: %s)", constant.EmptyString))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -207,11 +195,6 @@ func OverrideConfig() (err error) {
 		viper.Set(config.ConfKey, cfgFile)
 	}
 
-	// override daemon
-	if daemonStr != constant.DefaultRandomString {
-		viper.Set(config.DaemonKey, daemonStr)
-	}
-
 	// override log
 	if logFileName != constant.DefaultRandomString {
 		viper.Set(config.LogFileNameKey, logFileName)
@@ -234,18 +217,9 @@ func OverrideConfig() (err error) {
 		viper.Set(config.LogMaxBackupsKey, logMaxBackups)
 	}
 
-	// override server
-	if serverAddr != constant.DefaultRandomString {
-		viper.Set(config.ServerAddrKey, serverAddr)
-	}
-	if serverPidFile != constant.DefaultRandomString {
-		viper.Set(config.ServerPidFileKey, serverPidFile)
-	}
-	if serverReadTimeout != constant.DefaultRandomInt {
-		viper.Set(config.ServerReadTimeoutKey, serverReadTimeout)
-	}
-	if serverWriteTimeout != constant.DefaultRandomInt {
-		viper.Set(config.ServerWriteTimeoutKey, serverWriteTimeout)
+	// override sql
+	if sql != constant.DefaultRandomString {
+		viper.Set(config.SQL, sql)
 	}
 
 	// validate configuration
