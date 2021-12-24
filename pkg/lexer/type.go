@@ -39,6 +39,11 @@ const (
 	WhiteSpace
 )
 
+var (
+	// epsilon
+	Epsilon rune
+)
+
 func (tt TokenType) String() string {
 	switch tt {
 	case Select:
@@ -53,15 +58,37 @@ func (tt TokenType) String() string {
 		return "AndKeyword"
 	case Identifier:
 		return "Identifier"
-	case GE, GT, LE, LT, Equal, NotEqual1, NotEqual2:
-		return "ComparisonOperator"
-	case Plus, Minus, Multiply, Divide, Mod:
-		return "ArithmeticOperator"
+	case GE:
+		return "GreaterOrEqual"
+	case GT:
+		return "GreaterThan"
+	case LE:
+		return "LessOrEqual"
+	case LT:
+		return "LessThan"
+	case Equal:
+		return "Equal"
+	case NotEqual1, NotEqual2:
+		return "NotEqual"
+	case Plus:
+		return "Plus"
+	case Minus:
+		return "Minus"
+	case Multiply:
+		return "Multiply"
+	case Divide:
+		return "Divide"
+	case Mod:
+		return "Mod"
 	case NumberLiteral:
 		return "NumberLiteral"
 	case StringLiteral:
 		return "StringLiteral"
-	case Comma, Semicolon, LeftParenthesis, RightParenthesis, SingleQuote:
+	case LeftParenthesis:
+		return "LeftParenthesis"
+	case RightParenthesis:
+		return "RightParenthesis"
+	case Comma, Semicolon, SingleQuote:
 		return "Separator"
 	case WhiteSpace:
 		return "WhiteSpace"
@@ -72,7 +99,7 @@ func (tt TokenType) String() string {
 
 type State struct {
 	Index     int
-	Value     string
+	Value     []rune
 	Next      map[rune][]*State
 	IsFinal   bool
 	TokenType TokenType
@@ -84,10 +111,15 @@ func NewState(i int) *State {
 	}
 }
 
+func (s *State) AppendValue(c rune) {
+	s.Value = append(s.Value, c)
+}
+
 func (s *State) AddNext(c rune, ns *State) {
 	s.Next[c] = append(s.Next[c], ns)
 }
 
 func (s *State) Transit(c rune) []*State {
+	s.AppendValue(c)
 	return s.Next[c]
 }
