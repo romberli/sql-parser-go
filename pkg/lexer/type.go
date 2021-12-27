@@ -1,10 +1,16 @@
 package lexer
 
+import (
+	"fmt"
+
+	"github.com/romberli/go-util/constant"
+)
+
 type TokenType int
 
 const (
 	// keyword
-	Select TokenType = iota
+	Select TokenType = iota + 1
 	From
 	As
 	Where
@@ -41,7 +47,7 @@ const (
 
 var (
 	// epsilon
-	Epsilon rune
+	Epsilon rune = constant.ZeroInt
 )
 
 func (tt TokenType) String() string {
@@ -97,6 +103,22 @@ func (tt TokenType) String() string {
 	}
 }
 
+type Token struct {
+	TokenType TokenType
+	Lexeme    string
+}
+
+func NewToken(tokenType TokenType, lexeme string) *Token {
+	return &Token{
+		TokenType: tokenType,
+		Lexeme:    lexeme,
+	}
+}
+
+func (t *Token) String() string {
+	return fmt.Sprintf("{tokenType: %s, lexeme: %s", t.TokenType.String(), t.Lexeme)
+}
+
 type State struct {
 	Index     int
 	Value     []rune
@@ -108,6 +130,7 @@ type State struct {
 func NewState(i int) *State {
 	return &State{
 		Index: i,
+		Next:  make(map[rune][]*State),
 	}
 }
 
@@ -120,6 +143,32 @@ func (s *State) AddNext(c rune, ns *State) {
 }
 
 func (s *State) Transit(c rune) []*State {
-	s.AppendValue(c)
 	return s.Next[c]
+}
+
+func (s *State) Print() {
+	printedList := make(map[int]*State)
+
+	if s.IsFinal {
+		fmt.Println(fmt.Sprintf(
+			"final state found. index: %d, tokenType: %s",
+			s.Index, s.TokenType.String()))
+		return
+	}
+
+	for c, nsList := range s.Next {
+		for _, ns := range nsList {
+			printChar := c
+			if c == constant.ZeroInt {
+				printChar = EpsilonRune
+			}
+			fmt.Println(fmt.Sprintf("state %d + intput '%c' -> state %d", s.Index, printChar, ns.Index))
+			printedList[ns.Index] = ns
+		}
+	}
+	for _, ns := range printedList {
+		if s.Index != ns.Index {
+			ns.Print()
+		}
+	}
 }

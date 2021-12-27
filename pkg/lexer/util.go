@@ -3,6 +3,7 @@ package lexer
 const (
 	// char
 	UnderBarRune = '_'
+	DotRune      = '.'
 	// comparison operator
 	GTRune          = '>'
 	LTRune          = '<'
@@ -28,7 +29,7 @@ const (
 )
 
 func IsAlphabet(c rune) bool {
-	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == UnderBarRune
+	return c >= 'a' && c <= 'z' || c == UnderBarRune
 }
 
 func IsNumber(c rune) bool {
