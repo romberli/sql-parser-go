@@ -43,3 +43,7 @@ log:
   # default: 5
   maxBackups: 5
 
+# description: specify the sql text
+# type: string
+# default: ""
+sql: ""
