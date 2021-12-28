@@ -7,6 +7,7 @@ const (
 	alphabetEnd   = 122
 
 	underBarRune = '_'
+	singleQuote  = '\''
 	EpsilonRune  = 'ε'
 )
 

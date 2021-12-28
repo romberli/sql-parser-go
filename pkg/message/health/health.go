@@ -1,8 +1,8 @@
 package health
 
 import (
-	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/config"
+	"github.com/romberli/sql-parser-go/pkg/message"
 )
 
 func init() {

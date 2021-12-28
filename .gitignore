@@ -7,7 +7,7 @@
 ./bin/*
 *.pid
 *.test
-go-template
+sql-parser-go
 
 # config
 .idea/

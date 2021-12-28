@@ -1,4 +1,4 @@
-module github.com/romberli/go-template
+module github.com/romberli/sql-parser-go
 
 go 1.16
 

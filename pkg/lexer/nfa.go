@@ -1,5 +1,10 @@
 package lexer
 
+import (
+	"github.com/romberli/go-util/constant"
+	"github.com/romberli/sql-parser-go/pkg/token"
+)
+
 const (
 	// keyword
 	SelectString = "select"
@@ -18,32 +23,39 @@ const (
 )
 
 var (
-	MultiRuneList = map[TokenType]string{
+	MultiRuneList = map[token.Type]string{
 		// keyword
-		Select: SelectString,
-		From:   FromString,
-		As:     AsString,
-		Where:  WhereString,
-		And:    AndString,
+		token.Select: SelectString,
+		token.From:   FromString,
+		token.As:     AsString,
+		token.Where:  WhereString,
+		token.And:    AndString,
 		// comparison operator
-		GE:        GEString,
-		GT:        GTString,
-		LE:        LEString,
-		LT:        LTString,
-		Equal:     EqualString,
-		NotEqual1: NotEqual1String,
-		NotEqual2: NotEqual2String,
+		token.GE:        GEString,
+		token.GT:        GTString,
+		token.LE:        LEString,
+		token.LT:        LTString,
+		token.Equal:     EqualString,
+		token.NotEqual1: NotEqual1String,
+		token.NotEqual2: NotEqual2String,
 	}
-	SingleRuneList = map[TokenType]rune{
+	SingleRuneList = map[token.Type]rune{
+		// comparison operator
+		token.GT:    GTRune,
+		token.LT:    LTRune,
+		token.Equal: EqualRune,
 		// arithmetic operator
-		Plus:     PlusRune,
-		Minus:    MinusRune,
-		Multiply: MultiplyRune,
-		Divide:   DivideRune,
-		Mod:      ModRune,
+		token.Plus:     PlusRune,
+		token.Minus:    MinusRune,
+		token.Multiply: MultiplyRune,
+		token.Divide:   DivideRune,
+		token.Mod:      ModRune,
 		// parenthesis
-		LeftParenthesis:  LeftParenthesisRune,
-		RightParenthesis: RightParenthesisRune,
+		token.LeftParenthesis:  LeftParenthesisRune,
+		token.RightParenthesis: RightParenthesisRune,
+		// symbol
+		token.Comma:     CommaRune,
+		token.Semicolon: SemicolonRune,
 	}
 )
 
@@ -81,7 +93,7 @@ func (nfa *NFA) initMultiRune() {
 		start := nfa.getNewState()
 		// temporary state
 		tempState := start
-		nfa.InitState.AddNext(Epsilon, start)
+		nfa.InitState.AddNext(token.Epsilon, start)
 
 		for _, c := range tokenString {
 			s := nfa.getNewState()
@@ -90,13 +102,13 @@ func (nfa *NFA) initMultiRune() {
 		}
 
 		final := nfa.getFinalState(tokenType)
-		tempState.AddNext(Epsilon, final)
+		tempState.AddNext(token.Epsilon, final)
 	}
 }
 
 func (nfa *NFA) initIdentifier() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(Epsilon, start)
+	nfa.InitState.AddNext(token.Epsilon, start)
 
 	for _, c := range nfa.CharacterSet.GetDigits() {
 		start.AddNext(c, start)
@@ -106,45 +118,55 @@ func (nfa *NFA) initIdentifier() {
 	for _, c := range nfa.CharacterSet.GetAlphabets() {
 		start.AddNext(c, s)
 	}
+
 	for _, c := range nfa.CharacterSet.GetAlphabets() {
 		s.AddNext(c, s)
 	}
+	for _, c := range nfa.CharacterSet.GetDigits() {
+		s.AddNext(c, s)
+	}
 
-	final := nfa.getFinalState(Identifier)
-	s.AddNext(Epsilon, final)
+	final := nfa.getFinalState(token.Identifier)
+	s.AddNext(token.Epsilon, final)
 }
 
 func (nfa *NFA) initSingleRune() {
 	for tokenType, c := range SingleRuneList {
 		start := nfa.getNewState()
-		nfa.InitState.AddNext(Epsilon, start)
+		nfa.InitState.AddNext(token.Epsilon, start)
 
 		s := nfa.getNewState()
 		start.AddNext(c, s)
 
 		final := nfa.getFinalState(tokenType)
-		s.AddNext(Epsilon, final)
+		s.AddNext(token.Epsilon, final)
 	}
 }
 
 func (nfa *NFA) initStringLiteral() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(Epsilon, start)
+	nfa.InitState.AddNext(token.Epsilon, start)
+
+	openQuote := nfa.getNewState()
+	start.AddNext(singleQuote, openQuote)
 
 	for _, c := range nfa.CharacterSet.GetAlphabets() {
-		start.AddNext(c, start)
+		openQuote.AddNext(c, openQuote)
 	}
 	for _, c := range nfa.CharacterSet.GetDigits() {
-		start.AddNext(c, start)
+		openQuote.AddNext(c, openQuote)
 	}
 
-	final := nfa.getFinalState(StringLiteral)
-	start.AddNext(Epsilon, final)
+	closeQuote := nfa.getNewState()
+	openQuote.AddNext(singleQuote, closeQuote)
+
+	final := nfa.getFinalState(token.StringLiteral)
+	closeQuote.AddNext(token.Epsilon, final)
 }
 
 func (nfa *NFA) initNumberLiteral() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(Epsilon, start)
+	nfa.InitState.AddNext(token.Epsilon, start)
 	s := nfa.getNewState()
 
 	for _, c := range nfa.CharacterSet.GetDigits() {
@@ -152,16 +174,60 @@ func (nfa *NFA) initNumberLiteral() {
 		s.AddNext(c, s)
 	}
 
-	final := nfa.getFinalState(NumberLiteral)
-	s.AddNext(Epsilon, final)
+	final := nfa.getFinalState(token.NumberLiteral)
+	s.AddNext(token.Epsilon, final)
 }
 
 func (nfa *NFA) Print() {
 	nfa.InitState.Print()
 }
 
-func (nfa *NFA) Match() *Token {
-	return nil
+func (nfa *NFA) Match(runes []rune) *token.Token {
+	return nfa.match(nfa.InitState, constant.ZeroInt, runes)
+}
+
+func (nfa *NFA) match(s *State, i int, runes []rune) *token.Token {
+	if i == len(runes) {
+		// all input runes are matched, check the result
+		if s.IsFinal {
+			// final state found
+			return token.NewToken(s.TokenType, string(runes))
+		}
+		// this state is not a final state, need to check if there is any ε-move that can transit to the final state
+		nsList := s.Next[token.Epsilon]
+		for _, ns := range nsList {
+			if ns.IsFinal {
+				// final state found
+				return token.NewToken(ns.TokenType, string(runes))
+			}
+		}
+		// all input runes are matched, and there is no ε-move that can transit to the final state, return error token
+		return token.NewToken(token.Error, string(runes))
+	}
+
+	nsList := s.Next[runes[i]]
+	if nsList == nil {
+		nsList = s.Next[token.Epsilon]
+		if nsList == nil {
+			//  can't transit to any other state, return error token
+			return token.NewToken(token.Error, string(runes))
+		}
+	} else {
+		// matched an input rune, increase the matching index
+		i++
+	}
+
+	for _, ns := range nsList {
+		// match next rune recursively
+		t := nfa.match(ns, i, runes)
+		// if returning token is not an error token, it means matched some token,
+		// otherwise, means this is not a good path, need to try another one
+		if t.Type != token.Error {
+			return t
+		}
+	}
+
+	return token.NewToken(token.Error, string(runes))
 }
 
 func (nfa *NFA) getNewState() *State {
@@ -169,7 +235,7 @@ func (nfa *NFA) getNewState() *State {
 	return NewState(nfa.Index)
 }
 
-func (nfa *NFA) getFinalState(tokenType TokenType) *State {
+func (nfa *NFA) getFinalState(tokenType token.Type) *State {
 	final := nfa.getNewState()
 	final.IsFinal = true
 	final.TokenType = tokenType

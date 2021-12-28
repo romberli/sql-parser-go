@@ -16,7 +16,7 @@ const (
 	DivideRune   = '/'
 	ModRune      = '%'
 	// separator
-	ColonRune            = ','
+	CommaRune            = ','
 	SemicolonRune        = ';'
 	LeftParenthesisRune  = '('
 	RightParenthesisRune = ')'
@@ -45,13 +45,17 @@ func IsArithmeticOperator(c rune) bool {
 }
 
 func IsSeparator(c rune) bool {
-	return c == ColonRune || c == SemicolonRune || c == LeftParenthesisRune || c == RightParenthesisRune || c == SingleQuoteRune
+	return c == CommaRune || c == SemicolonRune || c == LeftParenthesisRune || c == RightParenthesisRune || c == SingleQuoteRune
 }
 
 func IsWhiteSpace(c rune) bool {
 	return c == SpaceRune || c == TabRune || c == ReturnRune || c == NewLineRune
 }
 
-func ShouldMatch(c rune) bool {
+func IsAlphabetOrNumber(c rune) bool {
+	return IsAlphabet(c) || IsNumber(c)
+}
+
+func IsSymbol(c rune) bool {
 	return IsWhiteSpace(c) || IsComparisonOperator(c) || IsArithmeticOperator(c) || IsSeparator(c)
 }

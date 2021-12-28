@@ -43,27 +43,3 @@ log:
   # default: 5
   maxBackups: 5
 
-# server configuration
-server:
-  # description: specify the server listening address, format: host:port
-  # type: string
-  # default: 0.0.0.0:80
-  addr: "0.0.0.0:80"
-  # description: pid file path, if it's specified as relative path,
-  # then directory of binary file will be the base directory of log file,
-  # it is recommended to specify absolute path.
-  # type: string
-  # default: go_template.pid
-  pidFile: go_template.pid
-  # description: specify the read timeout of http request, 0 means no timeout
-  # unit: second
-  # type: int
-  # available: 0 - 60
-  # default: 5
-  readTimeout: 5
-  # description: specify the write timeout of http resp, 0 means no timeout
-  # unit: second
-  # type: int
-  # available: 0 - 60
-  # default: 10
-  writeTimeout: 10

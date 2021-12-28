@@ -22,8 +22,8 @@ import (
 
 // global constant
 const (
-	DefaultCommandName = "go-template"
-	DefaultErrorHeader = "GO-TEMPLATE"
+	DefaultCommandName = "sql-parser-go"
+	DefaultErrorHeader = "SP"
 	DefaultDaemon      = false
 	DefaultBaseDir     = constant.CurrentDir
 	DefaultLogDir      = "./log"

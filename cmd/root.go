@@ -22,13 +22,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
+	"github.com/romberli/sql-parser-go/pkg/message"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/romberli/go-template/config"
+	"github.com/romberli/sql-parser-go/config"
 )
 
 var (
@@ -48,9 +48,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "go-template",
-	Short: "go-template",
-	Long:  `go-template is a template of golang program`,
+	Use:   "sql-parser-go",
+	Short: "sql-parser-go",
+	Long:  `sql-parser-go is a sql parser tool written in go`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// if no subcommand is set, it will print help information.
 		if len(args) == 0 {
@@ -188,7 +188,7 @@ func ReadConfigFile() (err error) {
 	return nil
 }
 
-// OverrideConfig read configuration from command line interface, it will override the config file configuration
+// OverrideConfig read configuration from command line dependency, it will override the config file configuration
 func OverrideConfig() (err error) {
 	// override config
 	if cfgFile != constant.EmptyString && cfgFile != constant.DefaultRandomString {

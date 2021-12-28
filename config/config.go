@@ -23,10 +23,10 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/hashicorp/go-multierror"
-	"github.com/romberli/go-template/pkg/message"
 	"github.com/romberli/go-util/common"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/log"
+	"github.com/romberli/sql-parser-go/pkg/message"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )

@@ -1,4 +1,4 @@
-package lexer
+package token
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"github.com/romberli/go-util/constant"
 )
 
-type TokenType int
+type Type int
 
 const (
 	// keyword
-	Select TokenType = iota + 1
+	Select Type = iota + 1
 	From
 	As
 	Where
@@ -43,6 +43,8 @@ const (
 	SingleQuote
 	// white space
 	WhiteSpace
+	// error
+	Error
 )
 
 var (
@@ -50,7 +52,7 @@ var (
 	Epsilon rune = constant.ZeroInt
 )
 
-func (tt TokenType) String() string {
+func (tt Type) String() string {
 	switch tt {
 	case Select:
 		return "SelectKeyword"
@@ -94,81 +96,33 @@ func (tt TokenType) String() string {
 		return "LeftParenthesis"
 	case RightParenthesis:
 		return "RightParenthesis"
-	case Comma, Semicolon, SingleQuote:
-		return "Separator"
+	case Comma:
+		return "Comma"
+	case Semicolon:
+		return "Semicolon"
+	case SingleQuote:
+		return "SingleQuote"
 	case WhiteSpace:
 		return "WhiteSpace"
+	case Error:
+		return "Error"
 	default:
 		return "Unknown"
 	}
 }
 
 type Token struct {
-	TokenType TokenType
-	Lexeme    string
+	Type   Type
+	Lexeme string
 }
 
-func NewToken(tokenType TokenType, lexeme string) *Token {
+func NewToken(tokenType Type, lexeme string) *Token {
 	return &Token{
-		TokenType: tokenType,
-		Lexeme:    lexeme,
+		Type:   tokenType,
+		Lexeme: lexeme,
 	}
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("{tokenType: %s, lexeme: %s", t.TokenType.String(), t.Lexeme)
-}
-
-type State struct {
-	Index     int
-	Value     []rune
-	Next      map[rune][]*State
-	IsFinal   bool
-	TokenType TokenType
-}
-
-func NewState(i int) *State {
-	return &State{
-		Index: i,
-		Next:  make(map[rune][]*State),
-	}
-}
-
-func (s *State) AppendValue(c rune) {
-	s.Value = append(s.Value, c)
-}
-
-func (s *State) AddNext(c rune, ns *State) {
-	s.Next[c] = append(s.Next[c], ns)
-}
-
-func (s *State) Transit(c rune) []*State {
-	return s.Next[c]
-}
-
-func (s *State) Print() {
-	printedList := make(map[int]*State)
-
-	if s.IsFinal {
-		fmt.Println(fmt.Sprintf(
-			"final state found. index: %d, tokenType: %s",
-			s.Index, s.TokenType.String()))
-		return
-	}
-
-	for c, nsList := range s.Next {
-		for _, ns := range nsList {
-			printChar := c
-			if c == constant.ZeroInt {
-				printChar = EpsilonRune
-			}
-			fmt.Println(fmt.Sprintf("state %d + intput '%c' -> state %d", s.Index, printChar, ns.Index))
-			printedList[ns.Index] = ns
-		}
-	}
-	for _, ns := range printedList {
-		if s.Index != ns.Index {
-			ns.Print()
-		}
-	}
+	return fmt.Sprintf("{tokenType: %s, lexeme: %s}", t.Type.String(), t.Lexeme)
 }
