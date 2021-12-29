@@ -73,8 +73,8 @@ func (dfa *DFA) Init() {
 				}
 			}
 
-			for _, existSet := range allSets {
-				if existSet.Equal(newSet) {
+			for _, as := range allSets {
+				if as.Equal(newSet) {
 					setExists = true
 					dfa.Index--
 					break
