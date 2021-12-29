@@ -26,6 +26,21 @@ func (s *State) AddNext(c rune, ns *State) {
 	s.Next[c] = append(s.Next[c], ns)
 }
 
+func (s *State) EpsilonMove() []*State {
+	states := []*State{s}
+
+	s.epsilonMove(states)
+
+	return states
+}
+
+func (s *State) epsilonMove(states []*State) {
+	for _, state := range s.Next[token.Epsilon] {
+		states = append(states, state)
+		state.epsilonMove(states)
+	}
+}
+
 func (s *State) Print() {
 	printedList := make(map[int]*State)
 
@@ -77,6 +92,30 @@ func (s *Set) AddNext(c rune, ns *Set) {
 	s.Next[c] = ns
 }
 
+func (s *Set) Contains(state *State) bool {
+	for _, st := range s.States {
+		if st.Index == state.Index {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *Set) Equal(other *Set) bool {
+	if len(s.States) != len(other.States) {
+		return false
+	}
+
+	for _, state := range s.States {
+		for !other.Contains(state) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s *Set) String() string {
 	var states string
 
@@ -84,7 +123,8 @@ func (s *Set) String() string {
 		states += fmt.Sprintf("%d, ", state.Index)
 	}
 
-	return fmt.Sprintf("{index: %d, states: [%s]}", s.Index, strings.Trim(strings.TrimSpace(states), constant.CommaString))
+	return fmt.Sprintf(
+		"{index: %d, states: [%s]}", s.Index, strings.Trim(strings.TrimSpace(states), constant.CommaString))
 }
 
 func (s *Set) Print() {
@@ -102,7 +142,8 @@ func (s *Set) Print() {
 		if c == constant.ZeroInt {
 			printChar = EpsilonRune
 		}
-		fmt.Println(fmt.Sprintf("state {%d %s + intput '%c' -> state %d", s.Index, s.String(), printChar, ns.Index))
+		fmt.Println(fmt.Sprintf(
+			"state {%d %s + intput '%c' -> state %d", s.Index, s.String(), printChar, ns.Index))
 		printedList[ns.Index] = ns
 	}
 
