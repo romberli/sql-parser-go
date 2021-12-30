@@ -1,7 +1,7 @@
 # 什么是SQL解析器
 SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法规则, 并生成抽象语法树(AST), 供后续优化器进行优化, 它具有词法分析, 语法分析, 语义分析等流程。
 
-图: 数据库体系结构
+![MySQL体系结构](image/mysql_architecture.png "图1: MySQL体系结构")
 
 ## 词法分析(lexical analysis)
 词法分析按单个字符读取SQL文本, 按照一定词法规则识别各类单词, 将输入文本转换为token序列, 进行词法分析的程序或者函数叫作词法分析器(lexical analyzer, 简称lexer)或者扫描器(scanner).
@@ -53,7 +53,7 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 
 实现方法如下:
 
-图: 词法解析实现方法
+![词法解析实现方法](image/lexer_implementation.png "图2: 词法解析实现方法")
 
 ## 词法规范(Lexical Specification)
 词法规范描述本语言支持的关键字, 标识符, 运算符等token相关的规范, 是词法解析的基础, 根据SQL语法规定以及上面约定的语句限定, 本篇涉及的token类型如下:
@@ -118,31 +118,31 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 
 #### 识别select关键字的NFA
 
-图: NFA-select
+![nfa_select](image/nfa_select.png "图3: nfa-select")
 
 - 假设输入字符串为select, 从S状态开始读取字母s以后转换为A1状态, 读取字母e以后转换为A2状态, 以此类推一直到读取字母t后转换为A6状态, 此时所有字符已经读取完毕, A6状态下可以通过ε-move到达F状态(即ε-closure(A6)包含终止状态), 因此本次解析成功.
 - 假设输入字符串为selct, 经过依次读取字母s, e, l后进入A3状态, 此时读取字母c, 无法跳转到下一个状态, 而A3即不是终止状态也无法通过ε-move到达终止状态(即ε-closure(A3)不包含终止状态), 因此本次解析失败.
 
 #### 识别标识符的NFA
 
-图: NFA-identifier
+![nfa_identifier](image/nfa_identifier.png "图4: nfa-identifier")
 
 - 假设输入字符串为1a2b, 从S状态开始读取数字1以后依旧为S状态, 读取字母a以后转换为A状态, 读取数字2以后依旧为A状态, 读取字母b以后依旧是A状态, 此时所有字符串读取完毕, 通过ε-move可到达F状态, 解析成功.
 - 假设输入字符串为123, 从S状态开始读取数字1以后依旧为S状态, 读取数字2以后依旧为S状态, 读取数字3以后依旧为S状态, 此时所有字符读取完毕, 状态依旧是S, S状态既不是终止状态也无法通过ε-move到达终止状态, 解析失败.
 
 #### 识别所有关键字的NFA
 
-图: NFA-keyword
+![nfa_keyword](image/nfa_keyword.png "图4: nfa-keyword")
 
 #### 识别select关键字与标识符的NFA
 
-图: NFA-select_identifier
+![nfa_select_identifier](image/nfa_select_identifier.png "图5: nfa-select-identifier")
 
 F1代表select关键字, F2代表标识符, 假设输入字符串为selct, 由于关键字具有更高优先级, 因此先走上面的分支, 走之前要先保存当前状态(即S状态)与当前读入情况(当前未读入任何字符), 然后依次读取字母s, e, l后进入A3状态, 读取字母c, 此时无法跳转到下一个状态, 因此需要`回溯`到S状态, 通过ε-move到达B1状态, 重新读取字母s后转换为B2状态, 然后依次读取字母e, l, c, t后依旧为B2状态, 最后通过ε-move到达终止状态F2, 本次解析成功且token类型为标识符. NFA由于对同一个输入存在不同的转换, 因此需要记录分叉点, 必要时`回溯`至分叉点, 再尝试另一条路径, 当一个SQL中存在很多的标识符时, 经常需要回溯, 从而降低性能.
 
 #### 识别as关键字与标识符的NFA
 
-图: NFA-as_identifier
+![nfa_as_identifier](image/nfa_as_identifier.png "图6: nfa-as-identifier")
 
 通过不断扩充, 可最终实现识别所有token的NFA.
 
@@ -161,23 +161,23 @@ NFA到DFA的转换可通过子集构造法实现, 步骤如下:
 
 以识别as关键字与标识符的NFA举例, 根据定义可得Set0包含S, B1, 针对输入字符a, Set1包含A1, B2, F2, 如图所示:
 
-图: NFA-DFA_1
+![dfa_a](image/dfa_a.png "图7: dfa-a")
 
 重复上述步骤以后, 可得下图:
 
-图: NFA-DFA_2
+![dfa_as_identifier](image/dfa_as_identifier.png "图8: dfa-as-identifier")
 
 上图中可看到Set2里的F2被打叉了, 因为一个Set里有多个终止状态说明发生了歧义性, 应根据优先级保留唯一的终止状态, 这里保留了代表关键字的F1. 当把图里的每个Set作为一个整体当作一个状态时, 即获得了等价的DFA, 可以看到该DFA里即没有ε-move, 也没有针对同一个输入字符进行分叉的情况, 特别地, Set4里没有包含终止状态, 说明当输入字符串仅包含数字时, 即不能识别为as关键字也不能识别为标识符, 解析会失败.
 
 
 # demo
-词法分析器可通过Flex等工具来实现, 只要定义好正则表达式, Flex可自动生成对应的词法分析器, 即它是生成程序的程序. NFA到DFA的转换是这类工具的核心功能, 不过从业界来看, 大多数语言的编译器选择了纯手工的方式来打造词法分析器, 以更多地进行针对性的优化来提高性能. 不同的编译器或解释器选择了不同的有限自动机来实现词法分析, 这里介绍为本篇文章而编写的SQL解析器的用法.
+词法分析器可通过Flex等工具来实现, 只要定义好正则表达式, Flex可自动生成对应的词法分析器, 即它是生成程序的程序. NFA到DFA的转换是这类工具的核心功能, 不过从业界来看, 大多数语言的编译器选择了纯手工的方式来打造词法分析器, 以更多地进行针对性的优化来提高性能. 不同的编译器或解释器选择了不同的有限自动机来实现词法分析, 本demo根据上述原理分别实现了基于NFA与DFA的词法解析器.
 
 ## 编译安装
 ```shell
 go version
 ```
-go需要1.16以上版本
+go的版本需为1.16及以上
 ```shell
 git clone https://github.com/romberli/sql-parser-go.git
 cd sql-parser-go
