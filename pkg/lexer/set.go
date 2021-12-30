@@ -16,6 +16,7 @@ type Set struct {
 	TokenType token.Type
 }
 
+// NewSet returns a new *Set
 func NewSet(i int) *Set {
 	return &Set{
 		Index: i,
@@ -23,6 +24,10 @@ func NewSet(i int) *Set {
 	}
 }
 
+// AddState add the given state into the set,
+// - if a same state already exists in the set, it will be ignored
+// - if the new state is a final state and there is already a final state exists in the set,
+// 	 only one state of which token type is keyword stays in the set
 func (s *Set) AddState(state *State) {
 	if !s.Contains(state) {
 		if state.IsFinal {
@@ -30,12 +35,14 @@ func (s *Set) AddState(state *State) {
 
 			i, final := s.GetFinalState()
 			if final == nil {
+				// there is no final state in the set
 				s.TokenType = state.TokenType
 				s.States = append(s.States, state)
 				return
 			}
 
 			if state.TokenType.IsKeyword() {
+				// keyword token type has the top priority, it will replace the old final state
 				s.TokenType = state.TokenType
 				s.States[i] = state
 				return
@@ -46,10 +53,12 @@ func (s *Set) AddState(state *State) {
 	}
 }
 
+// AddNext adds the next set of given rune
 func (s *Set) AddNext(c rune, ns *Set) {
 	s.Next[c] = ns
 }
 
+// Contains returns if the given state is in the set
 func (s *Set) Contains(state *State) bool {
 	for _, st := range s.States {
 		if st.Index == state.Index {
@@ -60,6 +69,7 @@ func (s *Set) Contains(state *State) bool {
 	return false
 }
 
+// GetFinalState returns the final state in the set
 func (s *Set) GetFinalState() (int, *State) {
 	for i, state := range s.States {
 		if state.IsFinal {
@@ -70,6 +80,7 @@ func (s *Set) GetFinalState() (int, *State) {
 	return constant.ZeroInt, nil
 }
 
+// Equal returns if the twe sets contains the same states, the order of the states does not matter
 func (s *Set) Equal(other *Set) bool {
 	if len(s.States) != len(other.States) {
 		return false
@@ -84,6 +95,7 @@ func (s *Set) Equal(other *Set) bool {
 	return true
 }
 
+// String returns the string representation of the set
 func (s *Set) String() string {
 	var states string
 
@@ -95,6 +107,7 @@ func (s *Set) String() string {
 		"{index: %d, states: [%s]}", s.Index, strings.Trim(strings.TrimSpace(states), constant.CommaString))
 }
 
+// Print prints the set and all the next sets recursively
 func (s *Set) Print() {
 	printedList := make(map[int]*Set)
 
@@ -117,6 +130,7 @@ func (s *Set) Print() {
 
 	for _, ns := range printedList {
 		if s.Index != ns.Index {
+			// print recursively
 			ns.Print()
 		}
 	}

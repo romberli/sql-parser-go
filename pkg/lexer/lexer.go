@@ -9,16 +9,19 @@ type Lexer struct {
 	fa dependency.FiniteAutomata
 }
 
+// NewLexer returns a new *Lexer
 func NewLexer(fa dependency.FiniteAutomata) *Lexer {
 	return &Lexer{
 		fa: fa,
 	}
 }
 
+// GetFiniteAutomata returns the finite automata of the lexer
 func (l *Lexer) GetFiniteAutomata() dependency.FiniteAutomata {
 	return l.fa
 }
 
+// Lex scans the input string and returns a token list
 func (l *Lexer) Lex(sql string) []*token.Token {
 	var (
 		isStringLiteral bool
@@ -30,15 +33,18 @@ func (l *Lexer) Lex(sql string) []*token.Token {
 	length := len(sqlRunes)
 
 	for i, c := range sqlRunes {
-		if c == singleQuote == !isStringLiteral {
+		if c == singleQuote && !isStringLiteral {
+			// string literal starts
 			isStringLiteral = true
 			runes = append(runes, c)
 			continue
 		}
 
 		if c == singleQuote && isStringLiteral {
+			// string literal ends
 			isStringLiteral = false
 			runes = append(runes, c)
+			// match string literal token
 			tokens = append(tokens, l.GetFiniteAutomata().Match(runes))
 			runes = nil
 			continue
@@ -47,6 +53,7 @@ func (l *Lexer) Lex(sql string) []*token.Token {
 		if isStringLiteral {
 			runes = append(runes, c)
 			if i == length-1 {
+				// string literal does not end with single quote
 				tokens = append(tokens, token.NewToken(token.Error, string(runes)))
 			}
 			continue
@@ -81,8 +88,9 @@ func (l *Lexer) Lex(sql string) []*token.Token {
 			tokens = append(tokens, l.GetFiniteAutomata().Match(runes))
 			runes = nil
 		default:
+			// match tokens that contains multi runes
 			runes = append(runes, c)
-			if i >= length-1 || !IsAlphabetOrNumber(sqlRunes[i+1]) {
+			if i >= length-1 || !IsAlphabetOrDigit(sqlRunes[i+1]) {
 				tokens = append(tokens, l.GetFiniteAutomata().Match(runes))
 				runes = nil
 			}

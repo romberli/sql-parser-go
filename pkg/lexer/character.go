@@ -17,6 +17,7 @@ type CharacterSet struct {
 	Digits    []rune
 }
 
+// NewCharacterSet returns a new *CharacterSet
 func NewCharacterSet(alphabets, digits []rune) *CharacterSet {
 	return &CharacterSet{
 		Alphabets: alphabets,
@@ -24,6 +25,7 @@ func NewCharacterSet(alphabets, digits []rune) *CharacterSet {
 	}
 }
 
+// NewCharacterSetWithDefault returns a new *CharacterSet with default
 func NewCharacterSetWithDefault() *CharacterSet {
 	alphabets := []rune{underBarRune}
 
@@ -39,21 +41,12 @@ func NewCharacterSetWithDefault() *CharacterSet {
 	return NewCharacterSet(alphabets, digits)
 }
 
-func (cs *CharacterSet) Init() {
-	cs.Alphabets = append(cs.Alphabets, underBarRune)
-	for i := alphabetStart; i <= alphabetEnd; i++ {
-		cs.Alphabets = append(cs.Alphabets, rune(i))
-	}
-
-	for i := digitStart; i <= digitEnd; i++ {
-		cs.Digits = append(cs.Digits, rune(i))
-	}
-}
-
+// GetAlphabets returns the alphabet runes
 func (cs *CharacterSet) GetAlphabets() []rune {
 	return cs.Alphabets
 }
 
+// GetAlphabets returns the digit runes
 func (cs *CharacterSet) GetDigits() []rune {
 	return cs.Digits
 }

@@ -65,6 +65,7 @@ type NFA struct {
 	InitState    *State
 }
 
+// NewNFA returns a new *NFA
 func NewNFA(cs *CharacterSet) *NFA {
 	nfa := &NFA{
 		CharacterSet: cs,
@@ -76,12 +77,14 @@ func NewNFA(cs *CharacterSet) *NFA {
 	return nfa
 }
 
+// NewNFAWithDefault returns a new *NFA with default
 func NewNFAWithDefault() *NFA {
 	cs := NewCharacterSetWithDefault()
 
 	return NewNFA(cs)
 }
 
+// init initialize the NFA
 func (nfa *NFA) init() {
 	nfa.InitState = nfa.getNewState()
 
@@ -92,6 +95,7 @@ func (nfa *NFA) init() {
 	nfa.initNumberLiteral()
 }
 
+// initMultiRune initialize the states that can recognize tokens which have multi runes
 func (nfa *NFA) initMultiRune() {
 	for tokenType, tokenString := range MultiRuneList {
 		start := nfa.getNewState()
@@ -110,6 +114,7 @@ func (nfa *NFA) initMultiRune() {
 	}
 }
 
+// initIdentifier initialize the states that can recognize the identifier
 func (nfa *NFA) initIdentifier() {
 	start := nfa.getNewState()
 	nfa.InitState.AddNext(token.Epsilon, start)
@@ -134,6 +139,7 @@ func (nfa *NFA) initIdentifier() {
 	s.AddNext(token.Epsilon, final)
 }
 
+// initSingleRune initialize the states that can recognize tokens which have single rune
 func (nfa *NFA) initSingleRune() {
 	for tokenType, c := range SingleRuneList {
 		start := nfa.getNewState()
@@ -147,6 +153,7 @@ func (nfa *NFA) initSingleRune() {
 	}
 }
 
+// initStringLiteral initialize the states that can recognize string literal token
 func (nfa *NFA) initStringLiteral() {
 	start := nfa.getNewState()
 	nfa.InitState.AddNext(token.Epsilon, start)
@@ -168,6 +175,7 @@ func (nfa *NFA) initStringLiteral() {
 	closeQuote.AddNext(token.Epsilon, final)
 }
 
+// initNumberLiteral initialize the states that can recognize number literal token
 func (nfa *NFA) initNumberLiteral() {
 	start := nfa.getNewState()
 	nfa.InitState.AddNext(token.Epsilon, start)
@@ -182,10 +190,12 @@ func (nfa *NFA) initNumberLiteral() {
 	s.AddNext(token.Epsilon, final)
 }
 
+// Print prints all the states
 func (nfa *NFA) Print() {
 	nfa.InitState.Print()
 }
 
+// Match matches the given runes and returns proper token
 func (nfa *NFA) Match(runes []rune) *token.Token {
 	return nfa.match(nfa.InitState, constant.ZeroInt, runes)
 }
@@ -234,11 +244,13 @@ func (nfa *NFA) match(s *State, i int, runes []rune) *token.Token {
 	return token.NewToken(token.Error, string(runes))
 }
 
+// getNewState gets a new state
 func (nfa *NFA) getNewState() *State {
 	nfa.Index++
 	return NewState(nfa.Index)
 }
 
+// getNewFinalState gets a new final state
 func (nfa *NFA) getNewFinalState(tokenType token.Type) *State {
 	final := nfa.getNewState()
 	final.IsFinal = true

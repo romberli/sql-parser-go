@@ -27,11 +27,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-// nfaCmd represents the start command
-var nfaCmd = &cobra.Command{
-	Use:   "nfa",
-	Short: "nfa command",
-	Long:  `use nfa to match input string`,
+// dfaCmd represents the start command
+var dfaCmd = &cobra.Command{
+	Use:   "dfa",
+	Short: "dfa command",
+	Long:  `use dfa to match input string`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// init config
 		err := initConfig()
@@ -40,9 +40,12 @@ var nfaCmd = &cobra.Command{
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
-		nfa := lexer.NewNFAWithDefault()
-		lexer := lexer.NewLexer(nfa)
-		tokens := lexer.Lex(viper.GetString(config.SQL))
+		sqlText := viper.GetString(config.SQL)
+		fmt.Println(sqlText)
+
+		dfa := lexer.NewDFAWithDefault()
+		lexer := lexer.NewLexer(dfa)
+		tokens := lexer.Lex(sqlText)
 
 		for _, token := range tokens {
 			fmt.Println(token.String())
@@ -51,15 +54,15 @@ var nfaCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(nfaCmd)
+	rootCmd.AddCommand(dfaCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// nfaCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// dfaCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// nfaCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// dfaCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -14,6 +14,7 @@ type DFA struct {
 	InitSet      *Set
 }
 
+// NewDFA returns a new *DFA
 func NewDFA(cs *CharacterSet) *DFA {
 	dfa := &DFA{
 		CharacterSet: cs,
@@ -25,12 +26,14 @@ func NewDFA(cs *CharacterSet) *DFA {
 	return dfa
 }
 
+// NewDFAWithDefault returns a new *DFA with default
 func NewDFAWithDefault() *DFA {
 	cs := NewCharacterSetWithDefault()
 
 	return NewDFA(cs)
 }
 
+// init initialize the DFA
 func (dfa *DFA) init() {
 	nfa := NewNFA(dfa.CharacterSet)
 	dfa.NFA = nfa
@@ -106,10 +109,12 @@ func (dfa *DFA) init() {
 	}
 }
 
+// Print prints all the sets including the state in it
 func (dfa *DFA) Print() {
 	dfa.InitSet.Print()
 }
 
+// Match matches the given runes and returns proper token
 func (dfa *DFA) Match(runes []rune) *token.Token {
 	tempSet := dfa.InitSet
 
@@ -129,6 +134,7 @@ func (dfa *DFA) Match(runes []rune) *token.Token {
 	return token.NewToken(token.Error, string(runes))
 }
 
+// getNewSet gets a new set
 func (dfa *DFA) getNewSet() *Set {
 	dfa.Index++
 	return NewSet(dfa.Index)

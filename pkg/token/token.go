@@ -53,6 +53,7 @@ var (
 	KeywordList      = []Type{Select, From, As, And, Where}
 )
 
+// String returns the string representation of the token type
 func (t Type) String() string {
 	switch t {
 	case Select:
@@ -112,6 +113,7 @@ func (t Type) String() string {
 	}
 }
 
+// IsKeyword returns if the token type is a keyword
 func (t Type) IsKeyword() bool {
 	for _, keyword := range KeywordList {
 		if t == keyword {
@@ -127,6 +129,7 @@ type Token struct {
 	Lexeme string
 }
 
+// NewToken returns a new *Token
 func NewToken(tokenType Type, lexeme string) *Token {
 	return &Token{
 		Type:   tokenType,
@@ -134,6 +137,7 @@ func NewToken(tokenType Type, lexeme string) *Token {
 	}
 }
 
+// String returns the string representation of the token
 func (t *Token) String() string {
 	return fmt.Sprintf("{tokenType: %s, lexeme: %s}", t.Type.String(), t.Lexeme)
 }

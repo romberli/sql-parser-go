@@ -3,7 +3,6 @@ package lexer
 const (
 	// char
 	UnderBarRune = '_'
-	DotRune      = '.'
 	// comparison operator
 	GTRune          = '>'
 	LTRune          = '<'
@@ -28,34 +27,22 @@ const (
 	NewLineRune = '\n'
 )
 
+// IsAlphabet returns if the given rune is an alphabet
 func IsAlphabet(c rune) bool {
 	return c >= 'a' && c <= 'z' || c == UnderBarRune
 }
 
-func IsNumber(c rune) bool {
+// IsDigit returns if the given rune is a digit
+func IsDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
-func IsComparisonOperator(c rune) bool {
-	return c == GTRune || c == LTRune || c == EqualRune || c == ExclamationRune
-}
-
-func IsArithmeticOperator(c rune) bool {
-	return c == PlusRune || c == MinusRune || c == MultiplyRune || c == DivideRune || c == ModRune
-}
-
-func IsSeparator(c rune) bool {
-	return c == CommaRune || c == SemicolonRune || c == LeftParenthesisRune || c == RightParenthesisRune || c == SingleQuoteRune
-}
-
+// IsWhiteSpace returns if the given rune is a white space
 func IsWhiteSpace(c rune) bool {
 	return c == SpaceRune || c == TabRune || c == ReturnRune || c == NewLineRune
 }
 
-func IsAlphabetOrNumber(c rune) bool {
-	return IsAlphabet(c) || IsNumber(c)
-}
-
-func IsSymbol(c rune) bool {
-	return IsWhiteSpace(c) || IsComparisonOperator(c) || IsArithmeticOperator(c) || IsSeparator(c)
+// IsWhiteSpace returns if the given rune is either an alphabet or a digit
+func IsAlphabetOrDigit(c rune) bool {
+	return IsAlphabet(c) || IsDigit(c)
 }
