@@ -175,6 +175,10 @@ NFA到DFA的转换可通过子集构造法实现, 步骤如下:
 
 ## 编译安装
 ```shell
+go version
+```
+go需要1.16以上版本
+```shell
 git clone https://github.com/romberli/sql-parser-go.git
 cd sql-parser-go
 go build -o parser main.go
@@ -228,8 +232,8 @@ go build -o parser main.go
 {tokenType: StringLiteral, lexeme: 'abc'}
 ```
 
+# 扩展阅读
 
-
-
-
-
+- 龙书: Compilers: Principles, Techniques, & Tools
+- 斯坦福公开课: CS143 Compilers
+- 极客时间: 编译原理之美, 编译原理实践课
