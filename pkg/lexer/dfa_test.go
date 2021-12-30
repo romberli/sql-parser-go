@@ -15,7 +15,6 @@ func init() {
 
 func initTestDFA() {
 	testDFA = NewDFAWithDefault()
-	testDFA.Init()
 }
 
 func TestDFA_All(t *testing.T) {

@@ -70,19 +70,6 @@ func (s *Set) GetFinalState() (int, *State) {
 	return constant.ZeroInt, nil
 }
 
-//
-// func (s *Set) RemoveState(state *State) {
-//     var index int
-//     for i, st := range s.States {
-//         if st == state {
-//             index = i
-//             break
-//         }
-//     }
-//
-//     s.States = append(s.States[:index], s.States[index:]...)
-// }
-
 func (s *Set) Equal(other *Set) bool {
 	if len(s.States) != len(other.States) {
 		return false

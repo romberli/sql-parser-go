@@ -5,7 +5,6 @@ import (
 )
 
 type FiniteAutomata interface {
-	Init()
 	Print()
 	Match(runes []rune) *token.Token
 }

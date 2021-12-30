@@ -15,10 +15,14 @@ type DFA struct {
 }
 
 func NewDFA(cs *CharacterSet) *DFA {
-	return &DFA{
+	dfa := &DFA{
 		CharacterSet: cs,
 		Index:        -1,
 	}
+
+	dfa.init()
+
+	return dfa
 }
 
 func NewDFAWithDefault() *DFA {
@@ -27,20 +31,22 @@ func NewDFAWithDefault() *DFA {
 	return NewDFA(cs)
 }
 
-func (dfa *DFA) Init() {
+func (dfa *DFA) init() {
 	nfa := NewNFA(dfa.CharacterSet)
-	nfa.Init()
 	dfa.NFA = nfa
 
 	dfa.InitSet = dfa.getNewSet()
 
 	allSets := []*Set{dfa.InitSet}
 
+	// initialize the first set
 	for _, state := range nfa.InitState.EpsilonMove() {
 		dfa.InitSet.AddState(state)
 	}
 
+	// initialize a channel to save the sets that need be processed
 	setChan := make(chan *Set, maxSetChanLength)
+	// put the init set to the channel
 	setChan <- dfa.InitSet
 
 	var (
@@ -48,12 +54,14 @@ func (dfa *DFA) Init() {
 	)
 	for {
 		if len(setChan) == constant.ZeroInt {
+			// all sets are processed
 			close(setChan)
 			break
 		}
+		// get a set from the channel
 		currentSet := <-setChan
 		nextRunes := map[rune]bool{}
-
+		// get all the next runes except the Epsilon of the states in the set
 		for _, state := range currentSet.States {
 			for c := range state.Next {
 				if c != token.Epsilon {
@@ -61,11 +69,14 @@ func (dfa *DFA) Init() {
 				}
 			}
 		}
+
 		for c := range nextRunes {
+			// create a new set
 			nextSet := dfa.getNewSet()
 
 			for _, state := range currentSet.States {
 				for _, ns := range state.Next[c] {
+					// get the next state of c and also all the epsilon move states
 					for _, epsilonState := range ns.EpsilonMove() {
 						nextSet.AddState(epsilonState)
 					}
@@ -74,6 +85,7 @@ func (dfa *DFA) Init() {
 
 			for _, set := range allSets {
 				if set.Equal(nextSet) {
+					// this set already exists, use the old one as the next set of the current set
 					currentSet.Next[c] = set
 					setExists = true
 					dfa.Index--
@@ -81,8 +93,11 @@ func (dfa *DFA) Init() {
 				}
 			}
 			if !setExists {
+				// this is a brand-new set, add this to the all set
 				allSets = append(allSets, nextSet)
+				// use the new one as the next set of the current set
 				currentSet.Next[c] = nextSet
+				// send the new set to the channel and wait to be processed
 				setChan <- nextSet
 			}
 
@@ -97,7 +112,9 @@ func (dfa *DFA) Print() {
 
 func (dfa *DFA) Match(runes []rune) *token.Token {
 	tempSet := dfa.InitSet
+
 	for _, c := range runes {
+		// transit to the next set
 		tempSet = tempSet.Next[c]
 		if tempSet == nil {
 			return token.NewToken(token.Error, string(runes))
@@ -105,6 +122,7 @@ func (dfa *DFA) Match(runes []rune) *token.Token {
 	}
 
 	if tempSet.IsFinal {
+		// final set found
 		return token.NewToken(tempSet.TokenType, string(runes))
 	}
 
@@ -114,12 +132,4 @@ func (dfa *DFA) Match(runes []rune) *token.Token {
 func (dfa *DFA) getNewSet() *Set {
 	dfa.Index++
 	return NewSet(dfa.Index)
-}
-
-func (dfa *DFA) getFinalState(tokenType token.Type) *Set {
-	final := dfa.getNewSet()
-	final.IsFinal = true
-	final.TokenType = tokenType
-
-	return final
 }

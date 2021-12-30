@@ -15,7 +15,6 @@ func init() {
 
 func initTestNFA() {
 	testNFA = NewNFAWithDefault()
-	testNFA.Init()
 }
 
 func TestNFA_All(t *testing.T) {

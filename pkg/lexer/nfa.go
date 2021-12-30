@@ -66,10 +66,14 @@ type NFA struct {
 }
 
 func NewNFA(cs *CharacterSet) *NFA {
-	return &NFA{
+	nfa := &NFA{
 		CharacterSet: cs,
 		Index:        -1,
 	}
+
+	nfa.init()
+
+	return nfa
 }
 
 func NewNFAWithDefault() *NFA {
@@ -78,7 +82,7 @@ func NewNFAWithDefault() *NFA {
 	return NewNFA(cs)
 }
 
-func (nfa *NFA) Init() {
+func (nfa *NFA) init() {
 	nfa.InitState = nfa.getNewState()
 
 	nfa.initMultiRune()
@@ -101,7 +105,7 @@ func (nfa *NFA) initMultiRune() {
 			tempState = s
 		}
 
-		final := nfa.getFinalState(tokenType)
+		final := nfa.getNewFinalState(tokenType)
 		tempState.AddNext(token.Epsilon, final)
 	}
 }
@@ -126,7 +130,7 @@ func (nfa *NFA) initIdentifier() {
 		s.AddNext(c, s)
 	}
 
-	final := nfa.getFinalState(token.Identifier)
+	final := nfa.getNewFinalState(token.Identifier)
 	s.AddNext(token.Epsilon, final)
 }
 
@@ -138,7 +142,7 @@ func (nfa *NFA) initSingleRune() {
 		s := nfa.getNewState()
 		start.AddNext(c, s)
 
-		final := nfa.getFinalState(tokenType)
+		final := nfa.getNewFinalState(tokenType)
 		s.AddNext(token.Epsilon, final)
 	}
 }
@@ -160,7 +164,7 @@ func (nfa *NFA) initStringLiteral() {
 	closeQuote := nfa.getNewState()
 	openQuote.AddNext(singleQuote, closeQuote)
 
-	final := nfa.getFinalState(token.StringLiteral)
+	final := nfa.getNewFinalState(token.StringLiteral)
 	closeQuote.AddNext(token.Epsilon, final)
 }
 
@@ -174,7 +178,7 @@ func (nfa *NFA) initNumberLiteral() {
 		s.AddNext(c, s)
 	}
 
-	final := nfa.getFinalState(token.NumberLiteral)
+	final := nfa.getNewFinalState(token.NumberLiteral)
 	s.AddNext(token.Epsilon, final)
 }
 
@@ -235,7 +239,7 @@ func (nfa *NFA) getNewState() *State {
 	return NewState(nfa.Index)
 }
 
-func (nfa *NFA) getFinalState(tokenType token.Type) *State {
+func (nfa *NFA) getNewFinalState(tokenType token.Type) *State {
 	final := nfa.getNewState()
 	final.IsFinal = true
 	final.TokenType = tokenType

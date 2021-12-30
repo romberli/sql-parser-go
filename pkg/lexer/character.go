@@ -1,6 +1,7 @@
 package lexer
 
 const (
+	// ascii boundary
 	digitStart    = 48
 	digitEnd      = 57
 	alphabetStart = 97
