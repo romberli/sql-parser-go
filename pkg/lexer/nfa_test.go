@@ -29,7 +29,6 @@ func TestNFA_Print(t *testing.T) {
 
 func TestNFA_Match(t *testing.T) {
 	strList := []string{"select", "and", "as", "selectt", "'string'", "123", "123abc", ">=", "123."}
-	// strList := []string{"'123'"}
 
 	for _, str := range strList {
 		token := testNFA.Match([]rune(str))

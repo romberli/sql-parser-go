@@ -49,11 +49,12 @@ const (
 
 var (
 	// epsilon
-	Epsilon rune = constant.ZeroInt
+	Epsilon     rune = constant.ZeroInt
+	KeywordList      = []Type{Select, From, As, And, Where}
 )
 
-func (tt Type) String() string {
-	switch tt {
+func (t Type) String() string {
+	switch t {
 	case Select:
 		return "SelectKeyword"
 	case From:
@@ -109,6 +110,16 @@ func (tt Type) String() string {
 	default:
 		return "Unknown"
 	}
+}
+
+func (t Type) IsKeyword() bool {
+	for _, keyword := range KeywordList {
+		if t == keyword {
+			return true
+		}
+	}
+
+	return false
 }
 
 type Token struct {

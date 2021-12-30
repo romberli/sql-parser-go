@@ -1,8 +1,11 @@
 package lexer
 
 import (
+	"github.com/romberli/go-util/constant"
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
+
+const maxSetChanLength = 10000
 
 type DFA struct {
 	CharacterSet *CharacterSet
@@ -37,23 +40,21 @@ func (dfa *DFA) Init() {
 		dfa.InitSet.AddState(state)
 	}
 
-	setChan := make(chan *Set)
+	setChan := make(chan *Set, maxSetChanLength)
 	setChan <- dfa.InitSet
 
 	var (
-		ok        bool
 		setExists bool
-		nextSet   *Set
 	)
 	for {
-		nextSet, ok = <-setChan
-		if !ok {
+		if len(setChan) == constant.ZeroInt {
+			close(setChan)
 			break
 		}
-
+		currentSet := <-setChan
 		nextRunes := map[rune]bool{}
 
-		for _, state := range nextSet.States {
+		for _, state := range currentSet.States {
 			for c := range state.Next {
 				if c != token.Epsilon {
 					nextRunes[c] = true
@@ -61,29 +62,28 @@ func (dfa *DFA) Init() {
 			}
 		}
 		for c := range nextRunes {
-			newSet := dfa.getNewSet()
+			nextSet := dfa.getNewSet()
 
-			for _, state := range dfa.InitSet.States {
-				for _, st := range state.Next[c] {
-					for _, epsilonState := range st.EpsilonMove() {
-						if !newSet.Contains(epsilonState) {
-							newSet.AddState(epsilonState)
-						}
+			for _, state := range currentSet.States {
+				for _, ns := range state.Next[c] {
+					for _, epsilonState := range ns.EpsilonMove() {
+						nextSet.AddState(epsilonState)
 					}
 				}
 			}
 
-			for _, as := range allSets {
-				if as.Equal(newSet) {
+			for _, set := range allSets {
+				if set.Equal(nextSet) {
+					currentSet.Next[c] = set
 					setExists = true
 					dfa.Index--
 					break
 				}
 			}
 			if !setExists {
-				allSets = append(allSets, newSet)
-				setChan <- newSet
-				setExists = false
+				allSets = append(allSets, nextSet)
+				currentSet.Next[c] = nextSet
+				setChan <- nextSet
 			}
 
 			setExists = false
@@ -96,7 +96,19 @@ func (dfa *DFA) Print() {
 }
 
 func (dfa *DFA) Match(runes []rune) *token.Token {
-	return nil
+	tempSet := dfa.InitSet
+	for _, c := range runes {
+		tempSet = tempSet.Next[c]
+		if tempSet == nil {
+			return token.NewToken(token.Error, string(runes))
+		}
+	}
+
+	if tempSet.IsFinal {
+		return token.NewToken(tempSet.TokenType, string(runes))
+	}
+
+	return token.NewToken(token.Error, string(runes))
 }
 
 func (dfa *DFA) getNewSet() *Set {
