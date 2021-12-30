@@ -8,6 +8,8 @@
 *.pid
 *.test
 sql-parser-go
+parser
+lexer
 
 # config
 .idea/

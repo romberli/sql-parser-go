@@ -61,8 +61,8 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 - 标识符(identifier): 一个或多个小写英文字符或数字或下划线组成, 且不允许由纯数字组成
 - 比较运算符(comparisonOperator): >, >=, <, <=, = , !=, <>
 - 算数运算符(arithmeticOperator): +, -, *, /, %
-- 数字字面量(numberLiteral): 例如: 123等
-- 字符串字面量(stringLiteral): 例如: 'abc', 'aaa_123_bbb'等
+- 数字字面量(numberLiteral): 有纯数字组成, 例如: 123等
+- 字符串字面量(stringLiteral): 由单引号包裹的小写英文字符或数字或下划线组成, 例如: 'abc', 'aaa_123_bbb'等
 - 分隔符(separator): 逗号(,), 分号(;), 左括号((), 右括号()), 单引号(')
 - 空白符(whitespace): 空格( ), 回车符(\r), 换行符(\n), 制表符(\t)
 
@@ -77,9 +77,9 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 - 数字字面量: [0-9]+
 - 字符串字面量: '[a-z0-9_]*'
 - 分隔符: ,|;|(|)|'
-- 空白符: \s
+- 空白符: 空格|\r|\n|\t
 
-其中|表示或, +表示一个或多个, *表示0个或多个, ?表示0个或1个, 需要注意的是数字字面量里的.表示.这个字符本身, 而不是通常正则表达式意义上的任意一个字符
+其中|表示或, +表示一个或多个, *表示0个或多个
 
 #### 歧义性
 针对输入字符流, 如果存在多种切分方法, 则说明存在歧义性(或者叫二义性), 主要存在2种可能性:
@@ -154,10 +154,10 @@ DFA也是一种有限自动机, 可与NFA进行等价变换, 与NFA的区别如�
 DFA不需要保存临时状态, 不需要`回溯`, 因此性能较高, 但是他的状态数量可能会非常多, 假设某个NFA有N个状态, 那理论上DFA最大可能有2的N次方个状态, 因此会占用较多内存空间.
 
 NFA到DFA的转换可通过子集构造法实现, 步骤如下:
-- ε-closure(S), 即从S状态出发, 经过ε-move后所能到达的所有状态的集合, 记为Set0
+- ε-closure(S), 即从S状态出发, 经过ε-move后所能到达的状态的集合, 记为Set0
 - Set0里的各个状态可接受的输入字符的集合记为∑, 假设字符x属于∑, 从Set0里的各个状态出发, 获取读取字符x以后所有能达到的状态的集合记为move(Set0, x), move(Set0, x)的ε-closure记为Set1, 即Set1 = ε-closure(move(Set0, x))
 - 针对每个xi, xi属于∑, 获取ε-closure(move(Set0, xi))
-- 针对每个新产生的Set, 获取ε-closure(move(Set, xi))即可获得等价的DFA
+- 针对每个新产生的Set, 递归地获取所有ε-closure(move(Set, xi))即可获得等价的DFA
 
 以识别as关键字与标识符的NFA举例, 根据定义可得Set0包含S, B1, 针对输入字符a, Set1包含A1, B2, F2, 如图所示:
 
@@ -167,12 +167,66 @@ NFA到DFA的转换可通过子集构造法实现, 步骤如下:
 
 图: NFA-DFA_2
 
-上图中可看到Set2里的F2被打叉了, 因为一个Set里有多个终止状态说明发生了歧义性, 应根据优先级保留唯一的终止状态, 当把图里的每个Set作为一个整体当作一个状态时, 即获得了等价的DFA, 可以看到该DFA里即没有ε-move, 也没有针对同一个输入字符进行分叉的情况, 特别地, Set4里没有包含终止状态, 说明当输入字符串仅包含数字时, 即不能识别为as关键字也不能识别为标识符, 解析会失败.
+上图中可看到Set2里的F2被打叉了, 因为一个Set里有多个终止状态说明发生了歧义性, 应根据优先级保留唯一的终止状态, 这里保留了代表关键字的F1. 当把图里的每个Set作为一个整体当作一个状态时, 即获得了等价的DFA, 可以看到该DFA里即没有ε-move, 也没有针对同一个输入字符进行分叉的情况, 特别地, Set4里没有包含终止状态, 说明当输入字符串仅包含数字时, 即不能识别为as关键字也不能识别为标识符, 解析会失败.
 
 
-# 实现方法
-词法分析器可通过Flex等工具来实现, 只要定义好正则表达式, Flex可自动生成对应的词法分析器, 即它是生成程序的程序. NFA到DFA的转换是这类工具的核心功能, 不过从业界来看, 大多数语言的编译器选择了纯手工的方式来打造词法分析器, 以更多地进行针对性的优化来提高性能. 不同的变成语言选择了不同的有限自动机来实现词法分析, 本章节将介绍NFA及DFA的实现方法.
+# demo
+词法分析器可通过Flex等工具来实现, 只要定义好正则表达式, Flex可自动生成对应的词法分析器, 即它是生成程序的程序. NFA到DFA的转换是这类工具的核心功能, 不过从业界来看, 大多数语言的编译器选择了纯手工的方式来打造词法分析器, 以更多地进行针对性的优化来提高性能. 不同的编译器或解释器选择了不同的有限自动机来实现词法分析, 这里介绍为本篇文章而编写的SQL解析器的用法.
 
+## 编译安装
+```shell
+git clone https://github.com/romberli/sql-parser-go.git
+cd sql-parser-go
+go build -o parser main.go
+```
+
+## 使用方法
+#### 使用NFA进行解析
+```
+./parser nfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
+```
+输出如下:
+```text
+{tokenType: SelectKeyword, lexeme: select}
+{tokenType: Identifier, lexeme: col1}
+{tokenType: AsKeyword, lexeme: as}
+{tokenType: Identifier, lexeme: c1}
+{tokenType: Comma, lexeme: ,}
+{tokenType: Identifier, lexeme: col2}
+{tokenType: FromKeyword, lexeme: from}
+{tokenType: Identifier, lexeme: t01}
+{tokenType: WhereKeyword, lexeme: where}
+{tokenType: Identifier, lexeme: id}
+{tokenType: LessOrEqual, lexeme: <=}
+{tokenType: NumberLiteral, lexeme: 100}
+{tokenType: AndKeyword, lexeme: and}
+{tokenType: Identifier, lexeme: col1}
+{tokenType: Equal, lexeme: =}
+{tokenType: StringLiteral, lexeme: 'abc'}
+```
+#### 使用DFA进行解析
+```
+./parser dfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
+```
+输出如下:
+```text
+{tokenType: SelectKeyword, lexeme: select}
+{tokenType: Identifier, lexeme: col1}
+{tokenType: AsKeyword, lexeme: as}
+{tokenType: Identifier, lexeme: c1}
+{tokenType: Comma, lexeme: ,}
+{tokenType: Identifier, lexeme: col2}
+{tokenType: FromKeyword, lexeme: from}
+{tokenType: Identifier, lexeme: t01}
+{tokenType: WhereKeyword, lexeme: where}
+{tokenType: Identifier, lexeme: id}
+{tokenType: LessOrEqual, lexeme: <=}
+{tokenType: NumberLiteral, lexeme: 100}
+{tokenType: AndKeyword, lexeme: and}
+{tokenType: Identifier, lexeme: col1}
+{tokenType: Equal, lexeme: =}
+{tokenType: StringLiteral, lexeme: 'abc'}
+```
 
 
 

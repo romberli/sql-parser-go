@@ -40,12 +40,9 @@ var dfaCmd = &cobra.Command{
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
-		sqlText := viper.GetString(config.SQL)
-		fmt.Println(sqlText)
-
 		dfa := lexer.NewDFAWithDefault()
 		lexer := lexer.NewLexer(dfa)
-		tokens := lexer.Lex(sqlText)
+		tokens := lexer.Lex(viper.GetString(config.SQL))
 
 		for _, token := range tokens {
 			fmt.Println(token.String())
