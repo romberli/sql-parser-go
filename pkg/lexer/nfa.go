@@ -14,10 +14,7 @@ const (
 	AndString    = "and"
 	// comparison operator
 	GEString        = ">="
-	GTString        = ">"
 	LEString        = "<="
-	LTString        = "<"
-	EqualString     = "=="
 	NotEqual1String = "!="
 	NotEqual2String = "<>"
 )
@@ -32,10 +29,7 @@ var (
 		token.And:    AndString,
 		// comparison operator
 		token.GE:        GEString,
-		token.GT:        GTString,
 		token.LE:        LEString,
-		token.LT:        LTString,
-		token.Equal:     EqualString,
 		token.NotEqual1: NotEqual1String,
 		token.NotEqual2: NotEqual2String,
 	}
