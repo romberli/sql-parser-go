@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	MultiRuneList = map[token.Type]string{
+	MultiRuneMap = map[token.Type]string{
 		// keyword
 		token.Select: SelectString,
 		token.From:   FromString,
@@ -33,7 +33,7 @@ var (
 		token.NotEqual1: NotEqual1String,
 		token.NotEqual2: NotEqual2String,
 	}
-	SingleRuneList = map[token.Type]rune{
+	SingleRuneMap = map[token.Type]rune{
 		// comparison operator
 		token.GT:    GTRune,
 		token.LT:    LTRune,
@@ -91,7 +91,7 @@ func (nfa *NFA) init() {
 
 // initMultiRune initialize the states that can recognize tokens which have multi runes
 func (nfa *NFA) initMultiRune() {
-	for tokenType, tokenString := range MultiRuneList {
+	for tokenType, tokenString := range MultiRuneMap {
 		start := nfa.getNewState()
 		// temporary state
 		tempState := start
@@ -135,7 +135,7 @@ func (nfa *NFA) initIdentifier() {
 
 // initSingleRune initialize the states that can recognize tokens which have single rune
 func (nfa *NFA) initSingleRune() {
-	for tokenType, c := range SingleRuneList {
+	for tokenType, c := range SingleRuneMap {
 		start := nfa.getNewState()
 		nfa.InitState.AddNext(token.Epsilon, start)
 
