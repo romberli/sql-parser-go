@@ -1,0 +1,80 @@
+Start
+    : SelectStatement
+    ;
+
+SelectStatement
+    : SimpleSelectStatement
+    ;
+
+SimpleSelectStatement
+    : SelectKeyword ColumnList FromKeyword TableName (WhereClause)?
+    ;
+
+ColumnList
+    : ColumnIdentifier (CommaOperator ColumnWithAlias)*
+    ;
+
+ColumnIdentifier
+    : ColumnWithAlias
+    | AsteriskOperator
+    ;
+
+ColumnWithAlias
+    : ColumnExpression (AliasName)?
+    ;
+
+ColumnExpression
+    : ColumnName (ExpressionOperator ColumnName)*
+    ;
+
+ColumnName
+    : Identifier
+    | LiteralExpression
+    ;
+
+ExpressionOperator
+    : PlusOperator
+    | MinusOperator
+    ;
+
+LiteralExpression
+    : Literal (ExpressionOperator Literal)*
+    ;
+
+Literal
+    : StringLiteral
+    | NumberLiteral
+    ;
+
+NumberLiteral
+    : IntLiteral
+    ;
+
+IntLiteral
+    : UnsignedIntLiteral
+    ;
+
+AliasName
+    : AsKeyword Identifier
+    | Identifier
+    ;
+
+TableName
+    : Identifier (AliasName)?
+    ;
+
+WhereClause
+    : WhereKeyword ColumnComparison (OtherConditions)*
+    ;
+
+ColumnComparison
+    : ColumnName (ComparisonOperator ColumnName)
+
+OtherCondition
+    : WhereOperator ColumnComparison
+    ;
+
+WhereOperator
+    : AndKeyword
+    | OrKeyword
+    ;
