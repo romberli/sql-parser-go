@@ -6,18 +6,18 @@ import (
 )
 
 type Lexer struct {
-	fa dependency.FiniteAutomata
+	fa dependency.Lexer
 }
 
 // NewLexer returns a new *Lexer
-func NewLexer(fa dependency.FiniteAutomata) *Lexer {
+func NewLexer(fa dependency.Lexer) *Lexer {
 	return &Lexer{
 		fa: fa,
 	}
 }
 
 // GetFiniteAutomata returns the finite automata of the lexer
-func (l *Lexer) GetFiniteAutomata() dependency.FiniteAutomata {
+func (l *Lexer) GetFiniteAutomata() dependency.Lexer {
 	return l.fa
 }
 

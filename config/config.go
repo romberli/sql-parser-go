@@ -32,8 +32,9 @@ import (
 )
 
 var (
-	ValidLogLevels  = []string{"debug", "info", "warn", "warning", "error", "fatal"}
-	ValidLogFormats = []string{"text", "json"}
+	ValidLogLevels      = []string{"debug", "info", "warn", "warning", "error", "fatal"}
+	ValidLogFormats     = []string{"text", "json"}
+	ValidFiniteAutomata = []string{"nfa", "dfa"}
 )
 
 // SetDefaultConfig set default configuration, it is the lowest priority
@@ -46,6 +47,8 @@ func SetDefaultConfig(baseDir string) {
 	viper.SetDefault(LogMaxSizeKey, log.DefaultLogMaxSize)
 	viper.SetDefault(LogMaxDaysKey, log.DefaultLogMaxDays)
 	viper.SetDefault(LogMaxBackupsKey, log.DefaultLogMaxBackups)
+	// finite automata
+	viper.SetDefault(FiniteAutomataKey, DefaultFiniteAutomata)
 }
 
 // ValidateConfig validates if the configuration is valid
@@ -54,6 +57,12 @@ func ValidateConfig() (err error) {
 
 	// validate log section
 	err = ValidateLog()
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	}
+
+	// validate finite automata
+	err = ValidateFiniteAutomata()
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
@@ -98,34 +107,33 @@ func ValidateLog() error {
 	logLevel, err := cast.ToStringE(viper.Get(LogLevelKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
-	}
-	valid, err = common.ElementInSlice(ValidLogLevels, logLevel)
-	if err != nil {
-		merr = multierror.Append(merr, err)
-	}
-	if !valid {
-		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogLevel, logLevel))
+	} else {
+		valid, err = common.ElementInSlice(ValidLogLevels, logLevel)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		} else if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogLevel, logLevel))
+		}
 	}
 
 	// validate log.format
 	logFormat, err := cast.ToStringE(viper.Get(LogFormatKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
-	}
-	valid, err = common.ElementInSlice(ValidLogFormats, logFormat)
-	if err != nil {
-		merr = multierror.Append(merr, err)
-	}
-	if !valid {
-		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogFormat, logFormat))
+	} else {
+		valid, err = common.ElementInSlice(ValidLogFormats, logFormat)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		} else if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogFormat, logFormat))
+		}
 	}
 
 	// validate log.maxSize
 	logMaxSize, err := cast.ToIntE(viper.Get(LogMaxSizeKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
-	}
-	if logMaxSize < MinLogMaxSize || logMaxSize > MaxLogMaxSize {
+	} else if logMaxSize < MinLogMaxSize || logMaxSize > MaxLogMaxSize {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxSize, MinLogMaxSize, MaxLogMaxSize, logMaxSize))
 	}
 
@@ -133,8 +141,7 @@ func ValidateLog() error {
 	logMaxDays, err := cast.ToIntE(viper.Get(LogMaxDaysKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
-	}
-	if logMaxDays < MinLogMaxDays || logMaxDays > MaxLogMaxDays {
+	} else if logMaxDays < MinLogMaxDays || logMaxDays > MaxLogMaxDays {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxDays, MinLogMaxDays, MaxLogMaxDays, logMaxDays))
 	}
 
@@ -142,9 +149,28 @@ func ValidateLog() error {
 	logMaxBackups, err := cast.ToIntE(viper.Get(LogMaxBackupsKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
-	}
-	if logMaxBackups < MinLogMaxDays || logMaxBackups > MaxLogMaxDays {
+	} else if logMaxBackups < MinLogMaxDays || logMaxBackups > MaxLogMaxDays {
 		merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLogMaxBackups, MinLogMaxBackups, MaxLogMaxBackups, logMaxBackups))
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func ValidateFiniteAutomata() error {
+	var valid bool
+
+	merr := &multierror.Error{}
+
+	fa, err := cast.ToStringE(viper.Get(FiniteAutomataKey))
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	} else {
+		valid, err = common.ElementInSlice(ValidFiniteAutomata, fa)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		} else if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidFiniteAutomata, valid))
+		}
 	}
 
 	return merr.ErrorOrNil()
@@ -153,7 +179,7 @@ func ValidateLog() error {
 func ValidateSQL() error {
 	merr := &multierror.Error{}
 
-	_, err := cast.ToStringE(viper.Get(SQL))
+	_, err := cast.ToStringE(viper.Get(SQLKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}

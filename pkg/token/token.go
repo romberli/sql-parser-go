@@ -15,6 +15,7 @@ const (
 	As
 	Where
 	And
+	Or
 	// identifier
 	Identifier
 	// comparison operator
@@ -43,14 +44,18 @@ const (
 	SingleQuote
 	// white space
 	WhiteSpace
+	// Epsilon
+	Epsilon
+	// End
+	End
 	// error
 	Error
 )
 
 var (
 	// epsilon
-	Epsilon     rune = constant.ZeroInt
-	KeywordList      = []Type{Select, From, As, And, Where}
+	EpsilonRune rune = constant.ZeroInt
+	KeywordList      = []Type{Select, From, As, Where, And, Or}
 )
 
 // String returns the string representation of the token type
@@ -62,10 +67,12 @@ func (t Type) String() string {
 		return "FromKeyword"
 	case As:
 		return "AsKeyword"
-	case Where:
-		return "WhereKeyword"
 	case And:
 		return "AndKeyword"
+	case Or:
+		return "OrKeyword"
+	case Where:
+		return "WhereKeyword"
 	case Identifier:
 		return "Identifier"
 	case GE:
@@ -106,6 +113,10 @@ func (t Type) String() string {
 		return "SingleQuote"
 	case WhiteSpace:
 		return "WhiteSpace"
+	case Epsilon:
+		return "ε"
+	case End:
+		return "End"
 	case Error:
 		return "Error"
 	default:

@@ -25,9 +25,9 @@ func NewSet(i int) *Set {
 }
 
 // AddState add the given state into the set,
-// - if a same state already exists in the set, it will be ignored
-// - if the new state is a final state and there is already a final state exists in the set,
-// 	 only one state of which token type is keyword stays in the set
+//   - if a same state already exists in the set, it will be ignored
+//   - if the new state is a final state and there is already a final state exists in the set,
+//     only one state of which token type is keyword stays in the set
 func (s *Set) AddState(state *State) {
 	if !s.Contains(state) {
 		if state.IsFinal {
@@ -120,7 +120,7 @@ func (s *Set) Print() {
 
 	for c, ns := range s.Next {
 		printChar := c
-		if c == token.Epsilon {
+		if c == token.EpsilonRune {
 			printChar = EpsilonRune
 		}
 		fmt.Println(fmt.Sprintf(

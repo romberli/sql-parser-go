@@ -36,6 +36,7 @@ const (
 	ErrGetPidFromPidFile          = 400029
 	ErrSetSid                     = 400030
 	ErrRemovePidFile              = 400031
+	ErrNotValidFiniteAutomata     = 400032
 )
 
 func initErrorMessage() {
@@ -70,4 +71,5 @@ func initErrorMessage() {
 	Messages[ErrGetPidFromPidFile] = config.NewErrMessage(DefaultMessageHeader, ErrGetPidFromPidFile, "get pid from pid file failed. pid file: %s.\n%s")
 	Messages[ErrSetSid] = config.NewErrMessage(DefaultMessageHeader, ErrSetSid, "set sid failed when daemonizing server")
 	Messages[ErrRemovePidFile] = config.NewErrMessage(DefaultMessageHeader, ErrRemovePidFile, "remove pid file failed. pid file: %s.\n%s")
+	Messages[ErrNotValidFiniteAutomata] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidFiniteAutomata, "finite automata must be one of [nfa, dfa], %s is not valid")
 }

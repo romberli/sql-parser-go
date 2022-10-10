@@ -42,6 +42,8 @@ var (
 	logMaxSize    int
 	logMaxDays    int
 	logMaxBackups int
+	// finite automata
+	finiteAutomata string
 	// sql
 	sql string
 )
@@ -97,6 +99,8 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&logMaxSize, "log-max-size", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max size(default: %d)", log.DefaultLogMaxSize))
 	rootCmd.PersistentFlags().IntVar(&logMaxDays, "log-max-days", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max days(default: %d)", log.DefaultLogMaxDays))
 	rootCmd.PersistentFlags().IntVar(&logMaxBackups, "log-max-backups", constant.DefaultRandomInt, fmt.Sprintf("specify the log file max backups(default: %d)", log.DefaultLogMaxBackups))
+	// finite automata
+	rootCmd.PersistentFlags().StringVar(&finiteAutomata, "finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultFiniteAutomata))
 	// sql
 	rootCmd.PersistentFlags().StringVar(&sql, "sql", constant.DefaultRandomString, fmt.Sprintf("specify the log format(default: %s)", constant.EmptyString))
 
@@ -217,9 +221,14 @@ func OverrideConfig() (err error) {
 		viper.Set(config.LogMaxBackupsKey, logMaxBackups)
 	}
 
+	// override finite automata
+	if finiteAutomata != constant.DefaultRandomString {
+		viper.Set(config.FiniteAutomataKey, finiteAutomata)
+	}
+
 	// override sql
 	if sql != constant.DefaultRandomString {
-		viper.Set(config.SQL, sql)
+		viper.Set(config.SQLKey, sql)
 	}
 
 	// validate configuration

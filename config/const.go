@@ -22,27 +22,31 @@ import (
 
 // global constant
 const (
-	DefaultCommandName = "sql-parser-go"
-	DefaultErrorHeader = "SP"
-	DefaultDaemon      = false
-	DefaultBaseDir     = constant.CurrentDir
-	DefaultLogDir      = "./log"
-	MinLogMaxSize      = 1
-	MaxLogMaxSize      = constant.MaxInt
-	MinLogMaxDays      = 1
-	MaxLogMaxDays      = constant.MaxInt
-	MinLogMaxBackups   = 1
-	MaxLogMaxBackups   = constant.MaxInt
+	DefaultCommandName    = "sql-parser-go"
+	DefaultErrorHeader    = "SP"
+	DefaultDaemon         = false
+	DefaultBaseDir        = constant.CurrentDir
+	DefaultLogDir         = "./log"
+	MinLogMaxSize         = 1
+	MaxLogMaxSize         = constant.MaxInt
+	MinLogMaxDays         = 1
+	MaxLogMaxDays         = constant.MaxInt
+	MinLogMaxBackups      = 1
+	MaxLogMaxBackups      = constant.MaxInt
+	NFA                   = "nfa"
+	DFA                   = "dfa"
+	DefaultFiniteAutomata = NFA
 )
 
 // configuration constant
 const (
-	ConfKey          = "config"
-	LogFileNameKey   = "log.fileName"
-	LogLevelKey      = "log.level"
-	LogFormatKey     = "log.format"
-	LogMaxSizeKey    = "log.maxSize"
-	LogMaxDaysKey    = "log.maxDays"
-	LogMaxBackupsKey = "log.maxBackups"
-	SQL              = "sql"
+	ConfKey           = "config"
+	LogFileNameKey    = "log.fileName"
+	LogLevelKey       = "log.level"
+	LogFormatKey      = "log.format"
+	LogMaxSizeKey     = "log.maxSize"
+	LogMaxDaysKey     = "log.maxDays"
+	LogMaxBackupsKey  = "log.maxBackups"
+	FiniteAutomataKey = "finiteAutomata"
+	SQLKey            = "sql"
 )

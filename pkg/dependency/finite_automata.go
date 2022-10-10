@@ -4,9 +4,12 @@ import (
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
 
-type FiniteAutomata interface {
+type Lexer interface {
 	// Print prints all the states/sets of the finite automata
 	Print()
 	// Match matches the given runes and returns proper token
 	Match(runes []rune) *token.Token
+}
+
+type Parser interface {
 }

@@ -1,22 +1,21 @@
 Start
-    : SelectStatement
+    : SelectStatement (StatementTerminator)?
     ;
 
 SelectStatement
-    : SimpleSelectStatement
-    ;
-
-SimpleSelectStatement
-    : SelectKeyword ColumnList FromKeyword TableName (WhereClause)?
+    : selectKeyword ColumnList fromKeyword TableName (WhereClause)?
     ;
 
 ColumnList
-    : ColumnIdentifier (CommaOperator ColumnWithAlias)*
+    : ColumnIdentifier (OtherColumns)*
     ;
 
 ColumnIdentifier
     : ColumnWithAlias
-    | AsteriskOperator
+    ;
+
+OtherColumns:
+    : commaOperator ColumnWithAlias
     ;
 
 ColumnWithAlias
@@ -24,57 +23,76 @@ ColumnWithAlias
     ;
 
 ColumnExpression
-    : ColumnName (ExpressionOperator ColumnName)*
+    : ColumnName (OtherExpression)*
     ;
 
 ColumnName
-    : Identifier
+    : identifier
     | LiteralExpression
     ;
 
+OtherExpression
+    : ExpressionOperator ColumnName
+    ;
+
 ExpressionOperator
-    : PlusOperator
-    | MinusOperator
+    : plusOperator
+    | minusOperator
     ;
 
 LiteralExpression
-    : Literal (ExpressionOperator Literal)*
+    : Literal (OtherLiteral)*
     ;
 
 Literal
-    : StringLiteral
-    | NumberLiteral
+    : stringLiteral
+    | numberLiteral
     ;
 
-NumberLiteral
-    : IntLiteral
-    ;
-
-IntLiteral
-    : UnsignedIntLiteral
+OtherLiteral
+    : ExpressionOperator Literal
     ;
 
 AliasName
-    : AsKeyword Identifier
-    | Identifier
+    : asKeyword identifier
+    | identifier
     ;
 
 TableName
-    : Identifier (AliasName)?
+    : identifier (AliasName)?
     ;
 
 WhereClause
-    : WhereKeyword ColumnComparison (OtherConditions)*
+    : whereKeyword ColumnComparison (OtherColumnComparison)*
     ;
 
 ColumnComparison
-    : ColumnName (ComparisonOperator ColumnName)
+    : ColumnName (OtherColumnName)?
+    ;
 
-OtherCondition
+OtherColumnName
+    : ComparisonOperator ColumnName
+    ;
+
+OtherColumnComparison
     : WhereOperator ColumnComparison
     ;
 
+ComparisonOperator
+    : greaterOrEqualOperator
+    | greaterThanOperator
+    | lessOrEqualOperator
+    | lessThanOperator
+    | equalOperator
+    | notEqual1Operator
+    | notEqual2Operator
+    ;
+
 WhereOperator
-    : AndKeyword
-    | OrKeyword
+    : andKeyword
+    | orKeyword
+    ;
+
+StatementTerminator
+    : semicolonOperator
     ;

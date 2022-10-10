@@ -12,6 +12,7 @@ const (
 	AsString     = "as"
 	WhereString  = "where"
 	AndString    = "and"
+	OrString     = "or"
 	// comparison operator
 	GEString        = ">="
 	LEString        = "<="
@@ -27,6 +28,7 @@ var (
 		token.As:     AsString,
 		token.Where:  WhereString,
 		token.And:    AndString,
+		token.Or:     OrString,
 		// comparison operator
 		token.GE:        GEString,
 		token.LE:        LEString,
@@ -95,7 +97,7 @@ func (nfa *NFA) initMultiRune() {
 		start := nfa.getNewState()
 		// temporary state
 		tempState := start
-		nfa.InitState.AddNext(token.Epsilon, start)
+		nfa.InitState.AddNext(token.EpsilonRune, start)
 
 		for _, c := range tokenString {
 			s := nfa.getNewState()
@@ -104,14 +106,14 @@ func (nfa *NFA) initMultiRune() {
 		}
 
 		final := nfa.getNewFinalState(tokenType)
-		tempState.AddNext(token.Epsilon, final)
+		tempState.AddNext(token.EpsilonRune, final)
 	}
 }
 
 // initIdentifier initialize the states that can recognize the identifier
 func (nfa *NFA) initIdentifier() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(token.Epsilon, start)
+	nfa.InitState.AddNext(token.EpsilonRune, start)
 
 	for _, c := range nfa.CharacterSet.GetDigits() {
 		start.AddNext(c, start)
@@ -130,27 +132,27 @@ func (nfa *NFA) initIdentifier() {
 	}
 
 	final := nfa.getNewFinalState(token.Identifier)
-	s.AddNext(token.Epsilon, final)
+	s.AddNext(token.EpsilonRune, final)
 }
 
 // initSingleRune initialize the states that can recognize tokens which have single rune
 func (nfa *NFA) initSingleRune() {
 	for tokenType, c := range SingleRuneMap {
 		start := nfa.getNewState()
-		nfa.InitState.AddNext(token.Epsilon, start)
+		nfa.InitState.AddNext(token.EpsilonRune, start)
 
 		s := nfa.getNewState()
 		start.AddNext(c, s)
 
 		final := nfa.getNewFinalState(tokenType)
-		s.AddNext(token.Epsilon, final)
+		s.AddNext(token.EpsilonRune, final)
 	}
 }
 
 // initStringLiteral initialize the states that can recognize string literal token
 func (nfa *NFA) initStringLiteral() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(token.Epsilon, start)
+	nfa.InitState.AddNext(token.EpsilonRune, start)
 
 	openQuote := nfa.getNewState()
 	start.AddNext(singleQuote, openQuote)
@@ -166,13 +168,13 @@ func (nfa *NFA) initStringLiteral() {
 	openQuote.AddNext(singleQuote, closeQuote)
 
 	final := nfa.getNewFinalState(token.StringLiteral)
-	closeQuote.AddNext(token.Epsilon, final)
+	closeQuote.AddNext(token.EpsilonRune, final)
 }
 
 // initNumberLiteral initialize the states that can recognize number literal token
 func (nfa *NFA) initNumberLiteral() {
 	start := nfa.getNewState()
-	nfa.InitState.AddNext(token.Epsilon, start)
+	nfa.InitState.AddNext(token.EpsilonRune, start)
 	s := nfa.getNewState()
 
 	for _, c := range nfa.CharacterSet.GetDigits() {
@@ -181,7 +183,7 @@ func (nfa *NFA) initNumberLiteral() {
 	}
 
 	final := nfa.getNewFinalState(token.NumberLiteral)
-	s.AddNext(token.Epsilon, final)
+	s.AddNext(token.EpsilonRune, final)
 }
 
 // Print prints all the states
@@ -202,7 +204,7 @@ func (nfa *NFA) match(s *State, i int, runes []rune) *token.Token {
 			return token.NewToken(s.TokenType, string(runes))
 		}
 		// this state is not a final state, need to check if there is any ε-move that can transit to the final state
-		nsList := s.Next[token.Epsilon]
+		nsList := s.Next[token.EpsilonRune]
 		for _, ns := range nsList {
 			if ns.IsFinal {
 				// final state found
@@ -215,7 +217,7 @@ func (nfa *NFA) match(s *State, i int, runes []rune) *token.Token {
 
 	nsList := s.Next[runes[i]]
 	if nsList == nil {
-		nsList = s.Next[token.Epsilon]
+		nsList = s.Next[token.EpsilonRune]
 		if nsList == nil {
 			//  can't transit to any other state, return error token
 			return token.NewToken(token.Error, string(runes))

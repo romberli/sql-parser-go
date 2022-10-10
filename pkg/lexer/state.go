@@ -37,7 +37,7 @@ func (s *State) EpsilonMove() []*State {
 
 // epsilonMove gets all the states that can transit to by epsilon move
 func (s *State) epsilonMove(states *[]*State) {
-	for _, state := range s.Next[token.Epsilon] {
+	for _, state := range s.Next[token.EpsilonRune] {
 		*states = append(*states, state)
 		// get epsilon move states recursively
 		state.epsilonMove(states)
@@ -58,7 +58,7 @@ func (s *State) Print() {
 	for c, nsList := range s.Next {
 		for _, ns := range nsList {
 			printChar := c
-			if c == token.Epsilon {
+			if c == token.EpsilonRune {
 				printChar = EpsilonRune
 			}
 			fmt.Println(fmt.Sprintf("state %d + intput '%c' -> state %d", s.Index, printChar, ns.Index))

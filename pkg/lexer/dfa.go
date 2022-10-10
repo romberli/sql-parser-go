@@ -64,10 +64,10 @@ func (dfa *DFA) init() {
 		// get a set from the channel
 		currentSet := <-setChan
 		nextRunes := map[rune]bool{}
-		// get all the next runes except the Epsilon of the states in the set
+		// get all the next runes except the MayBeEpsilon of the states in the set
 		for _, state := range currentSet.States {
 			for c := range state.Next {
-				if c != token.Epsilon {
+				if c != token.EpsilonRune {
 					nextRunes[c] = true
 				}
 			}
