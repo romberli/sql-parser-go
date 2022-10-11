@@ -35,6 +35,7 @@ const (
 	MaxLogMaxBackups      = constant.MaxInt
 	NFA                   = "nfa"
 	DFA                   = "dfa"
+	LLOne                 = "ll"
 	DefaultFiniteAutomata = NFA
 )
 

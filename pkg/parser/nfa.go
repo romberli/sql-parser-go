@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/pingcap/errors"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/sql-parser-go/pkg/ast"
@@ -18,7 +16,7 @@ type NFA struct {
 // NewNFA returns a new *NFA
 func NewNFA(tokens []*token.Token) *NFA {
 	nfa := &NFA{
-		Tokens: tokens,
+		Tokens: append(tokens, token.NewToken(token.End, constant.EmptyString)),
 		Index:  -2,
 	}
 
@@ -56,12 +54,6 @@ func (nfa *NFA) match(s *State, i int) error {
 		return nil
 	}
 
-	// newNode := ast
-	// if s.Node != nil {
-	//     // start to parse a new non-terminal
-	//     newNode = ast.NewNodeWithDefault(s.Node.Type)
-	//     ast.(newNode)
-	// }
 	if s.Node != nil && s.Parent != nil {
 		s.Parent.AddChildren(s.Node)
 	}
@@ -72,12 +64,11 @@ func (nfa *NFA) match(s *State, i int) error {
 		nsList = s.Next[token.Epsilon]
 		if nsList == nil {
 			// can't transit to any other state, return error
-			if s.Node != nil {
+			if s.Node != nil && s.Parent != nil {
 				s.Parent.RemoveLastChild()
 			}
-			fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
-			return errors.Errorf("error when matching token. matched tokens: %s, next token: %s",
-				nfa.Tokens[:i], nfa.Tokens[i])
+			// fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
+			return errors.Errorf("matching token failed. next token: %s", t)
 		}
 	} else {
 		// matched a token, set the token
@@ -86,22 +77,19 @@ func (nfa *NFA) match(s *State, i int) error {
 		i++
 	}
 
+	var err error
 	for _, ns := range nsList {
-		err := nfa.match(ns, i)
+		err = nfa.match(ns, i)
 		if err == nil {
 			return nil
 		}
 	}
 
-	matchedTokens := nfa.Tokens[:i]
-	nextToken := nfa.Tokens[i]
-
-	if s.Node != nil {
+	if s.Node != nil && s.Parent != nil {
 		s.Parent.RemoveLastChild()
 	}
-	fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
-	return errors.Errorf("error when matching token. matched tokens: %s, next token: %s",
-		matchedTokens, nextToken)
+	// fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
+	return err
 }
 
 func (nfa *NFA) Print() {

@@ -34,7 +34,7 @@ import (
 var (
 	ValidLogLevels      = []string{"debug", "info", "warn", "warning", "error", "fatal"}
 	ValidLogFormats     = []string{"text", "json"}
-	ValidFiniteAutomata = []string{"nfa", "dfa"}
+	ValidFiniteAutomata = []string{NFA, DFA, LLOne}
 )
 
 // SetDefaultConfig set default configuration, it is the lowest priority

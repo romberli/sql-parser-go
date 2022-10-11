@@ -47,21 +47,22 @@ var parseCmd = &cobra.Command{
 		switch fa {
 		case config.NFA:
 			l = lexer.NewLexer(lexer.NewNFAWithDefault())
-			p = parser.NewParser(parser.NewNFAWithDefault())
-		case config.DFA:
+			tokens := l.Lex(viper.GetString(config.SQLKey))
+			p = parser.NewParser(parser.NewNFA(tokens))
+		case config.LLOne:
 			l = lexer.NewLexer(lexer.NewDFAWithDefault())
-			p = parser.NewParser(parser.NewDFAWithDefault())
+			tokens := l.Lex(viper.GetString(config.SQLKey))
+			p = parser.NewParser(parser.NewLLOne(tokens))
 		default:
 			fmt.Println(message.NewMessage(message.ErrNotValidFiniteAutomata, viper.GetString(config.FiniteAutomataKey)).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
-		tokens := l.Lex(viper.GetString(config.SQLKey))
-		ast := p.Parse(tokens)
-
-		for _, token := range tokens {
-			fmt.Println(token.String())
+		astNode, err := p.Parse()
+		if err != nil {
+			fmt.Println(err.Error())
 		}
+		astNode.PrintChildren()
 	},
 }
 
@@ -77,5 +78,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// parseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

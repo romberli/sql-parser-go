@@ -7,42 +7,39 @@ import (
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
 
-type LLParser struct {
-	Tokens    []*token.Token
-	Index     int
-	InitNode  *ast.Node
-	InitState *State
+type LLOne struct {
+	Tokens []*token.Token
+	Index  int
 }
 
-func NewLLParser(tokens []*token.Token) *LLParser {
-	llp := &LLParser{
-		Tokens: tokens,
+func NewLLOne(tokens []*token.Token) *LLOne {
+	return &LLOne{
+		Tokens: append(tokens, token.NewToken(token.End, constant.EmptyString)),
 		Index:  -1,
 	}
-
-	// llp.init()
-
-	return llp
 }
 
-func (llp *LLParser) init() {
-	llp.InitState = llp.getNewState()
-}
-
-func (llp *LLParser) Match() (*ast.Node, error) {
-	rootNode := llp.getNewNode(ast.Root)
-	err := llp.match(rootNode)
+func (llo *LLOne) Match() (*ast.Node, error) {
+	rootNode := llo.getNewNode(ast.Root)
+	err := llo.match(rootNode)
 	if err != nil {
 		return nil, err
+	}
+
+	if llo.Tokens[llo.Index+1].Type != token.End {
+		return nil, errors.Errorf("matching token failed: matched tokens: %v, next token: %s", llo.Tokens[:llo.Index+1], llo.Tokens[llo.Index+1])
 	}
 
 	return rootNode, nil
 }
 
-func (llp *LLParser) match(n *ast.Node) error {
-	if llp.Index == len(llp.Tokens) {
-		//  all input tokens are matched correctly
-		return nil
+func (llo *LLOne) match(n *ast.Node) error {
+	if llo.Index == len(llo.Tokens)-1 {
+		if llo.Tokens[llo.Index].Type == token.End {
+			return nil
+		}
+
+		return errors.Errorf("matching token failed: matched tokens: %v, next token: %s", llo.Tokens[:llo.Index], llo.Tokens[llo.Index])
 	}
 
 	childrenList := n.GetChildren()
@@ -61,17 +58,17 @@ func (llp *LLParser) match(n *ast.Node) error {
 
 	var children []*ast.Node
 	for i, firstSet := range firstSetList {
-		if token.TypeExists(firstSet, llp.lookAhead().Type) {
+		if token.TypeExists(firstSet, llo.lookAhead().Type) {
 			// found correct path
 			children = childrenList[i]
 			for _, child := range children {
 				childFirst := child.GetFirstSet()
 			Loop:
-				if token.TypeExists(childFirst, llp.lookAhead().Type) {
+				if token.TypeExists(childFirst, llo.lookAhead().Type) {
 					// as there is no conflict, always can add child
 					n.AddChildren(child)
 					if child.IsTerminal() {
-						t := llp.readNext()
+						t := llo.readNext()
 						if child.Type.GetTokenType() != t.Type {
 							return errors.Errorf("match terminal failed. child type: %s, token type: %s", child.Type.String(), t.String())
 						}
@@ -80,7 +77,7 @@ func (llp *LLParser) match(n *ast.Node) error {
 						continue
 					}
 
-					err := llp.match(child)
+					err := llo.match(child)
 					if err != nil {
 						return err
 					}
@@ -88,11 +85,15 @@ func (llp *LLParser) match(n *ast.Node) error {
 					if child.Max == -1 {
 						goto Loop
 					}
+
+					continue
 				}
 
 				if child.MayEpsilon() {
 					continue
 				}
+
+				return errors.Errorf("matching token failed: node type: %s, matched tokens: %v, next token: %s", n.Type.String(), llo.Tokens[:llo.Index], llo.Tokens[llo.Index])
 			}
 
 			return nil
@@ -100,33 +101,32 @@ func (llp *LLParser) match(n *ast.Node) error {
 
 	}
 
-	return errors.Errorf("can't find available child. ast type: %s", n.Type.String())
-
+	return errors.Errorf("matching token failed: node type: %s, matched tokens: %v, next token: %s", n.Type.String(), llo.Tokens[:llo.Index], llo.Tokens[llo.Index])
 }
 
-func (llp *LLParser) lookAhead() *token.Token {
+func (llo *LLOne) lookAhead() *token.Token {
 	// if nfa.Index+1 >= len(nfa.Tokens) {
 	//     return nil
 	// }
 
-	return llp.Tokens[llp.Index+1]
+	return llo.Tokens[llo.Index+1]
 }
 
-func (llp *LLParser) readNext() *token.Token {
+func (llo *LLOne) readNext() *token.Token {
 	// if nfa.Index+1 >= len(nfa.Tokens) {
 	//     return nil
 	// }
-	llp.Index++
+	llo.Index++
 
-	return llp.Tokens[llp.Index]
+	return llo.Tokens[llo.Index]
 }
 
 // getNewState gets a new state
-func (llp *LLParser) getNewState() *State {
-	llp.Index++
-	return NewState(llp.Index)
+func (llo *LLOne) getNewState() *State {
+	llo.Index++
+	return NewState(llo.Index)
 }
 
-func (llp *LLParser) getNewNode(t ast.Type) *ast.Node {
+func (llo *LLOne) getNewNode(t ast.Type) *ast.Node {
 	return ast.NewNodeWithDefault(t)
 }

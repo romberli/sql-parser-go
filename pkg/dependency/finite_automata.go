@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"github.com/romberli/sql-parser-go/pkg/ast"
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
 
@@ -12,4 +13,5 @@ type Lexer interface {
 }
 
 type Parser interface {
+	Match() (*ast.Node, error)
 }
