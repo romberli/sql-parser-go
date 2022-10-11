@@ -6,7 +6,6 @@ import (
 	"github.com/pingcap/errors"
 	"github.com/romberli/go-util/constant"
 	"github.com/romberli/sql-parser-go/pkg/ast"
-	"github.com/romberli/sql-parser-go/pkg/node"
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
 
@@ -14,7 +13,6 @@ type NFA struct {
 	Tokens    []*token.Token
 	Index     int
 	InitState *State
-	tree      *ast.Tree
 }
 
 // NewNFA returns a new *NFA
@@ -34,13 +32,13 @@ func (nfa *NFA) init() {
 	rootStart, rootEnd := nfa.parseRoot()
 	start.AddNext(token.Epsilon, rootStart)
 	final := nfa.getNewState()
-	final.SetNode(node.NewNodeWithDefault(node.End))
+	final.SetNode(ast.NewNodeWithDefault(ast.End))
 
 	nfa.InitState = start
 	rootEnd.AddNext(token.End, final)
 }
 
-func (nfa *NFA) Match() (*node.Node, error) {
+func (nfa *NFA) Match() (*ast.Node, error) {
 	err := nfa.match(nfa.InitState, constant.ZeroInt)
 	if err != nil {
 		return nil, err
@@ -50,22 +48,22 @@ func (nfa *NFA) Match() (*node.Node, error) {
 }
 
 func (nfa *NFA) match(s *State, i int) error {
-	if s.Node != nil {
-		fmt.Println(fmt.Sprintf("matching %s started", s.Node.Type.String()))
-	}
+	// if s.Node != nil {
+	//     fmt.Println(fmt.Sprintf("matching %s started", s.Node.Type.String()))
+	// }
 	if i == len(nfa.Tokens) {
 		//  all input tokens are matched correctly
 		return nil
 	}
 
-	// newNode := node
+	// newNode := ast
 	// if s.Node != nil {
 	//     // start to parse a new non-terminal
 	//     newNode = ast.NewNodeWithDefault(s.Node.Type)
-	//     node.(newNode)
+	//     ast.(newNode)
 	// }
 	if s.Node != nil && s.Parent != nil {
-		s.Parent.AddNext(s.Node)
+		s.Parent.AddChildren(s.Node)
 	}
 
 	t := nfa.Tokens[i]
@@ -75,7 +73,7 @@ func (nfa *NFA) match(s *State, i int) error {
 		if nsList == nil {
 			// can't transit to any other state, return error
 			if s.Node != nil {
-				s.Parent.RemoveLast()
+				s.Parent.RemoveLastChild()
 			}
 			fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
 			return errors.Errorf("error when matching token. matched tokens: %s, next token: %s",
@@ -90,11 +88,7 @@ func (nfa *NFA) match(s *State, i int) error {
 
 	for _, ns := range nsList {
 		err := nfa.match(ns, i)
-		if err != nil {
-			// if s.Node != nil {
-			//     s.Parent.RemoveLast()
-			// }
-		} else {
+		if err == nil {
 			return nil
 		}
 	}
@@ -103,7 +97,7 @@ func (nfa *NFA) match(s *State, i int) error {
 	nextToken := nfa.Tokens[i]
 
 	if s.Node != nil {
-		s.Parent.RemoveLast()
+		s.Parent.RemoveLastChild()
 	}
 	fmt.Println(fmt.Sprintf("matching %s failed", s.Node.Type.String()))
 	return errors.Errorf("error when matching token. matched tokens: %s, next token: %s",
@@ -114,23 +108,6 @@ func (nfa *NFA) Print() {
 	nfa.InitState.Print()
 }
 
-func (nfa *NFA) lookAhead() *token.Token {
-	// if nfa.Index+1 >= len(nfa.Tokens) {
-	//     return nil
-	// }
-
-	return nfa.Tokens[nfa.Index+1]
-}
-
-func (nfa *NFA) readNext() *token.Token {
-	// if nfa.Index+1 >= len(nfa.Tokens) {
-	//     return nil
-	// }
-	nfa.Index++
-
-	return nfa.Tokens[nfa.Index]
-}
-
 // getNewState gets a new state
 func (nfa *NFA) getNewState() *State {
 	nfa.Index++
@@ -139,7 +116,7 @@ func (nfa *NFA) getNewState() *State {
 
 func (nfa *NFA) parseRoot() (*State, *State) {
 	start := nfa.getNewState()
-	rootNode := node.NewNodeWithDefault(node.Root)
+	rootNode := ast.NewNodeWithDefault(ast.Root)
 	start.SetNode(rootNode)
 	selectStatementStart, selectStatementEnd := nfa.parseSelectStatement(rootNode)
 	statementTerminatorStart, statementTerminatorEnd := nfa.parseStatementTerminator(rootNode)
@@ -153,17 +130,17 @@ func (nfa *NFA) parseRoot() (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseSelectStatement(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseSelectStatement(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	selectNode := node.NewNodeWithDefault(node.SelectStatement)
+	selectNode := ast.NewNodeWithDefault(ast.SelectStatement)
 	start.SetNode(selectNode)
 	start.SetParent(parent)
 	selectKeyword := nfa.getNewState()
-	selectKeyword.SetNode(node.NewNodeWithDefault(node.SelectKeyword))
+	selectKeyword.SetNode(ast.NewNodeWithDefault(ast.SelectKeyword))
 	selectKeyword.SetParent(selectNode)
 	columnListStart, columnListEnd := nfa.parseColumnList(selectNode)
 	fromKeyword := nfa.getNewState()
-	fromKeyword.SetNode(node.NewNodeWithDefault(node.FromKeyword))
+	fromKeyword.SetNode(ast.NewNodeWithDefault(ast.FromKeyword))
 	fromKeyword.SetParent(selectNode)
 	tableNameStart, tableNameEnd := nfa.parseTableName(selectNode)
 	whereClauseStart, whereClauseEnd := nfa.parseWhereClause(selectNode)
@@ -180,9 +157,9 @@ func (nfa *NFA) parseSelectStatement(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnList(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnList(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnListNode := node.NewNodeWithDefault(node.ColumnList)
+	columnListNode := ast.NewNodeWithDefault(ast.ColumnList)
 	start.SetNode(columnListNode)
 	start.SetParent(parent)
 	columnIdentifierStart, columnIdentifierEnd := nfa.parseColumnIdentifier(columnListNode)
@@ -198,9 +175,9 @@ func (nfa *NFA) parseColumnList(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnIdentifier(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnIdentifier(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnIdentifierNode := node.NewNodeWithDefault(node.ColumnIdentifier)
+	columnIdentifierNode := ast.NewNodeWithDefault(ast.ColumnIdentifier)
 	start.SetNode(columnIdentifierNode)
 	start.SetParent(parent)
 	columnWithAliasStart, columnWithAliasEnd := nfa.parseColumnWithAlias(columnIdentifierNode)
@@ -212,13 +189,13 @@ func (nfa *NFA) parseColumnIdentifier(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseOtherColumns(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseOtherColumns(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	otherColumnsNode := node.NewNodeWithDefault(node.OtherColumns)
+	otherColumnsNode := ast.NewNodeWithDefault(ast.OtherColumns)
 	start.SetNode(otherColumnsNode)
 	start.SetParent(parent)
 	commaOperator := nfa.getNewState()
-	commaOperator.SetNode(node.NewNodeWithDefault(node.CommaOperator))
+	commaOperator.SetNode(ast.NewNodeWithDefault(ast.CommaOperator))
 	commaOperator.SetParent(otherColumnsNode)
 	columnWithAliasStart, columnWithAliasEnd := nfa.parseColumnWithAlias(otherColumnsNode)
 	end := nfa.getNewState()
@@ -230,9 +207,9 @@ func (nfa *NFA) parseOtherColumns(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnWithAlias(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnWithAlias(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnWithAliasNode := node.NewNodeWithDefault(node.ColumnWithAlias)
+	columnWithAliasNode := ast.NewNodeWithDefault(ast.ColumnWithAlias)
 	start.SetNode(columnWithAliasNode)
 	start.SetParent(parent)
 	columnExpressionStart, columnExpressionEnd := nfa.parseColumnExpression(columnWithAliasNode)
@@ -247,9 +224,9 @@ func (nfa *NFA) parseColumnWithAlias(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnExpression(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnExpression(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnExpression := node.NewNodeWithDefault(node.ColumnExpression)
+	columnExpression := ast.NewNodeWithDefault(ast.ColumnExpression)
 	start.SetNode(columnExpression)
 	start.SetParent(parent)
 	columnNameStart, columnNameEnd := nfa.parseColumnName(columnExpression)
@@ -265,13 +242,13 @@ func (nfa *NFA) parseColumnExpression(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnName(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnName(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnNameNode := node.NewNodeWithDefault(node.ColumnName)
+	columnNameNode := ast.NewNodeWithDefault(ast.ColumnName)
 	start.SetNode(columnNameNode)
 	start.SetParent(parent)
 	identifier := nfa.getNewState()
-	identifier.SetNode(node.NewNodeWithDefault(node.Identifier))
+	identifier.SetNode(ast.NewNodeWithDefault(ast.Identifier))
 	identifier.SetParent(columnNameNode)
 	literalExpressionStart, literalExpressionEnd := nfa.parseLiteralExpression(columnNameNode)
 	end := nfa.getNewState()
@@ -284,9 +261,9 @@ func (nfa *NFA) parseColumnName(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseOtherExpression(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseOtherExpression(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	otherExpressionNode := node.NewNodeWithDefault(node.OtherExpression)
+	otherExpressionNode := ast.NewNodeWithDefault(ast.OtherExpression)
 	start.SetNode(otherExpressionNode)
 	start.SetParent(parent)
 	expressionOperatorStart, expressionOperatorEnd := nfa.parseExpressionOperator(otherExpressionNode)
@@ -300,16 +277,16 @@ func (nfa *NFA) parseOtherExpression(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseExpressionOperator(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseExpressionOperator(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	expressionOperatorNode := node.NewNodeWithDefault(node.ExpressionOperator)
+	expressionOperatorNode := ast.NewNodeWithDefault(ast.ExpressionOperator)
 	start.SetNode(expressionOperatorNode)
 	start.SetParent(parent)
 	plusOperator := nfa.getNewState()
-	plusOperator.SetNode(node.NewNodeWithDefault(node.PlusOperator))
+	plusOperator.SetNode(ast.NewNodeWithDefault(ast.PlusOperator))
 	plusOperator.SetParent(expressionOperatorNode)
 	minusOperator := nfa.getNewState()
-	minusOperator.SetNode(node.NewNodeWithDefault(node.MinusOperator))
+	minusOperator.SetNode(ast.NewNodeWithDefault(ast.MinusOperator))
 	minusOperator.SetParent(expressionOperatorNode)
 	end := nfa.getNewState()
 
@@ -317,15 +294,15 @@ func (nfa *NFA) parseExpressionOperator(parent *node.Node) (*State, *State) {
 	plusOperator.AddNext(token.Epsilon, end)
 	start.AddNext(token.Minus, minusOperator)
 	minusOperator.AddNext(token.Epsilon, end)
-	// start.AddNext(token.Multiply, end)
-	// start.AddNext(token.Divide, end)
+	// start.AddChildren(token.Multiply, end)
+	// start.AddChildren(token.Divide, end)
 
 	return start, end
 }
 
-func (nfa *NFA) parseLiteralExpression(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseLiteralExpression(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	literalExpressionNode := node.NewNodeWithDefault(node.LiteralExpression)
+	literalExpressionNode := ast.NewNodeWithDefault(ast.LiteralExpression)
 	start.SetNode(literalExpressionNode)
 	start.SetParent(parent)
 	literalStart, literalEnd := nfa.parseLiteral(literalExpressionNode)
@@ -341,16 +318,16 @@ func (nfa *NFA) parseLiteralExpression(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseLiteral(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseLiteral(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	literalNode := node.NewNodeWithDefault(node.Literal)
+	literalNode := ast.NewNodeWithDefault(ast.Literal)
 	start.SetNode(literalNode)
 	start.SetParent(parent)
 	numberLiteral := nfa.getNewState()
-	numberLiteral.SetNode(node.NewNodeWithDefault(node.NumberLiteral))
+	numberLiteral.SetNode(ast.NewNodeWithDefault(ast.NumberLiteral))
 	numberLiteral.SetParent(literalNode)
 	stringLiteral := nfa.getNewState()
-	stringLiteral.SetNode(node.NewNodeWithDefault(node.StringLiteral))
+	stringLiteral.SetNode(ast.NewNodeWithDefault(ast.StringLiteral))
 	stringLiteral.SetParent(literalNode)
 	end := nfa.getNewState()
 
@@ -362,9 +339,9 @@ func (nfa *NFA) parseLiteral(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseOtherLiteral(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseOtherLiteral(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	otherLiteralNode := node.NewNodeWithDefault(node.OtherLiteral)
+	otherLiteralNode := ast.NewNodeWithDefault(ast.OtherLiteral)
 	start.SetNode(otherLiteralNode)
 	start.SetParent(parent)
 	expressionOperatorStart, expressionOperatorEnd := nfa.parseExpressionOperator(otherLiteralNode)
@@ -378,16 +355,16 @@ func (nfa *NFA) parseOtherLiteral(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseAliasName(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseAliasName(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	aliasNameNode := node.NewNodeWithDefault(node.AliasName)
+	aliasNameNode := ast.NewNodeWithDefault(ast.AliasName)
 	start.SetNode(aliasNameNode)
 	start.SetParent(parent)
 	asKeyword := nfa.getNewState()
-	asKeyword.SetNode(node.NewNodeWithDefault(node.AsKeyword))
+	asKeyword.SetNode(ast.NewNodeWithDefault(ast.AsKeyword))
 	asKeyword.SetParent(aliasNameNode)
 	identifier := nfa.getNewState()
-	identifier.SetNode(node.NewNodeWithDefault(node.Identifier))
+	identifier.SetNode(ast.NewNodeWithDefault(ast.Identifier))
 	identifier.SetParent(aliasNameNode)
 	end := nfa.getNewState()
 
@@ -399,13 +376,13 @@ func (nfa *NFA) parseAliasName(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseTableName(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseTableName(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	tableNameNode := node.NewNodeWithDefault(node.TableName)
+	tableNameNode := ast.NewNodeWithDefault(ast.TableName)
 	start.SetNode(tableNameNode)
 	start.SetParent(parent)
 	identifier := nfa.getNewState()
-	identifier.SetNode(node.NewNodeWithDefault(node.Identifier))
+	identifier.SetNode(ast.NewNodeWithDefault(ast.Identifier))
 	identifier.SetParent(tableNameNode)
 	aliasNameStart, aliasNameEnd := nfa.parseAliasName(tableNameNode)
 	end := nfa.getNewState()
@@ -418,13 +395,13 @@ func (nfa *NFA) parseTableName(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseWhereClause(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseWhereClause(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	whereClauseNode := node.NewNodeWithDefault(node.WhereClause)
+	whereClauseNode := ast.NewNodeWithDefault(ast.WhereClause)
 	start.SetNode(whereClauseNode)
 	start.SetParent(parent)
 	whereKeyword := nfa.getNewState()
-	whereKeyword.SetNode(node.NewNodeWithDefault(node.WhereKeyword))
+	whereKeyword.SetNode(ast.NewNodeWithDefault(ast.WhereKeyword))
 	whereKeyword.SetParent(whereClauseNode)
 	columnComparisonStart, columnComparisonEnd := nfa.parseColumnComparison(whereClauseNode)
 	otherColumnComparisonStart, otherColumnComparisonEnd := nfa.parseOtherColumnComparison(whereClauseNode)
@@ -440,9 +417,9 @@ func (nfa *NFA) parseWhereClause(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseColumnComparison(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseColumnComparison(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	columnComparisonNode := node.NewNodeWithDefault(node.ColumnComparison)
+	columnComparisonNode := ast.NewNodeWithDefault(ast.ColumnComparison)
 	start.SetNode(columnComparisonNode)
 	start.SetParent(parent)
 	columnNameStart, columnNameEnd := nfa.parseColumnName(columnComparisonNode)
@@ -457,9 +434,9 @@ func (nfa *NFA) parseColumnComparison(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseOtherColumnName(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseOtherColumnName(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	otherColumnNameNode := node.NewNodeWithDefault(node.OtherColumnName)
+	otherColumnNameNode := ast.NewNodeWithDefault(ast.OtherColumnName)
 	start.SetNode(otherColumnNameNode)
 	start.SetParent(parent)
 	comparisonOperatorStart, comparisonOperatorEnd := nfa.parseComparisonOperator(otherColumnNameNode)
@@ -473,9 +450,9 @@ func (nfa *NFA) parseOtherColumnName(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseOtherColumnComparison(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseOtherColumnComparison(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	otherColumnComparisonNode := node.NewNodeWithDefault(node.OtherColumnComparison)
+	otherColumnComparisonNode := ast.NewNodeWithDefault(ast.OtherColumnComparison)
 	start.SetNode(otherColumnComparisonNode)
 	start.SetParent(parent)
 	whereOperatorStart, whereOperatorEnd := nfa.parseWhereOperator(otherColumnComparisonNode)
@@ -489,31 +466,31 @@ func (nfa *NFA) parseOtherColumnComparison(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseComparisonOperator(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseComparisonOperator(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	comparisonOperatorNode := node.NewNodeWithDefault(node.ComparisonOperator)
+	comparisonOperatorNode := ast.NewNodeWithDefault(ast.ComparisonOperator)
 	start.SetNode(comparisonOperatorNode)
 	start.SetParent(parent)
 	greaterOrEqualOperator := nfa.getNewState()
-	greaterOrEqualOperator.SetNode(node.NewNodeWithDefault(node.GreaterOrEqualOperator))
+	greaterOrEqualOperator.SetNode(ast.NewNodeWithDefault(ast.GreaterOrEqualOperator))
 	greaterOrEqualOperator.SetParent(comparisonOperatorNode)
 	greaterThanOperator := nfa.getNewState()
-	greaterThanOperator.SetNode(node.NewNodeWithDefault(node.GreaterThanOperator))
+	greaterThanOperator.SetNode(ast.NewNodeWithDefault(ast.GreaterThanOperator))
 	greaterThanOperator.SetParent(comparisonOperatorNode)
 	lessOrEqualOperator := nfa.getNewState()
-	lessOrEqualOperator.SetNode(node.NewNodeWithDefault(node.LessOrEqualOperator))
+	lessOrEqualOperator.SetNode(ast.NewNodeWithDefault(ast.LessOrEqualOperator))
 	lessOrEqualOperator.SetParent(comparisonOperatorNode)
 	lessThanOperator := nfa.getNewState()
-	lessThanOperator.SetNode(node.NewNodeWithDefault(node.LessThanOperator))
+	lessThanOperator.SetNode(ast.NewNodeWithDefault(ast.LessThanOperator))
 	lessThanOperator.SetParent(comparisonOperatorNode)
 	equalOperator := nfa.getNewState()
-	equalOperator.SetNode(node.NewNodeWithDefault(node.EqualOperator))
+	equalOperator.SetNode(ast.NewNodeWithDefault(ast.EqualOperator))
 	equalOperator.SetParent(comparisonOperatorNode)
 	notEqual1Operator := nfa.getNewState()
-	notEqual1Operator.SetNode(node.NewNodeWithDefault(node.NotEqual1Operator))
+	notEqual1Operator.SetNode(ast.NewNodeWithDefault(ast.NotEqual1Operator))
 	notEqual1Operator.SetParent(comparisonOperatorNode)
 	notEqual2Operator := nfa.getNewState()
-	notEqual2Operator.SetNode(node.NewNodeWithDefault(node.NotEqual2Operator))
+	notEqual2Operator.SetNode(ast.NewNodeWithDefault(ast.NotEqual2Operator))
 	notEqual2Operator.SetParent(comparisonOperatorNode)
 	end := nfa.getNewState()
 
@@ -535,16 +512,16 @@ func (nfa *NFA) parseComparisonOperator(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseWhereOperator(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseWhereOperator(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	whereOperatorNode := node.NewNodeWithDefault(node.WhereOperator)
+	whereOperatorNode := ast.NewNodeWithDefault(ast.WhereOperator)
 	start.SetNode(whereOperatorNode)
 	start.SetParent(parent)
 	andKeyword := nfa.getNewState()
-	andKeyword.SetNode(node.NewNodeWithDefault(node.AndKeyword))
+	andKeyword.SetNode(ast.NewNodeWithDefault(ast.AndKeyword))
 	andKeyword.SetParent(whereOperatorNode)
 	orKeyword := nfa.getNewState()
-	orKeyword.SetNode(node.NewNodeWithDefault(node.OrKeyword))
+	orKeyword.SetNode(ast.NewNodeWithDefault(ast.OrKeyword))
 	orKeyword.SetParent(whereOperatorNode)
 	end := nfa.getNewState()
 
@@ -556,13 +533,13 @@ func (nfa *NFA) parseWhereOperator(parent *node.Node) (*State, *State) {
 	return start, end
 }
 
-func (nfa *NFA) parseStatementTerminator(parent *node.Node) (*State, *State) {
+func (nfa *NFA) parseStatementTerminator(parent *ast.Node) (*State, *State) {
 	start := nfa.getNewState()
-	statementTerminatorNode := node.NewNodeWithDefault(node.StatementTerminator)
+	statementTerminatorNode := ast.NewNodeWithDefault(ast.StatementTerminator)
 	start.SetNode(statementTerminatorNode)
 	start.SetParent(parent)
 	semicolonOperator := nfa.getNewState()
-	semicolonOperator.SetNode(node.NewNodeWithDefault(node.SemicolonOperator))
+	semicolonOperator.SetNode(ast.NewNodeWithDefault(ast.SemicolonOperator))
 	semicolonOperator.SetParent(statementTerminatorNode)
 	end := nfa.getNewState()
 

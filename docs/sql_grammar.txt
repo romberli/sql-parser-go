@@ -1,4 +1,4 @@
-Start
+Root
     : SelectStatement (StatementTerminator)?
     ;
 

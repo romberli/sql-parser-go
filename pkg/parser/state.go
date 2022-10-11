@@ -3,14 +3,14 @@ package parser
 import (
 	"fmt"
 
-	"github.com/romberli/sql-parser-go/pkg/node"
+	"github.com/romberli/sql-parser-go/pkg/ast"
 	"github.com/romberli/sql-parser-go/pkg/token"
 )
 
 type State struct {
 	Index  int
-	Node   *node.Node
-	Parent *node.Node
+	Node   *ast.Node
+	Parent *ast.Node
 	Next   map[token.Type][]*State
 }
 
@@ -21,11 +21,11 @@ func NewState(i int) *State {
 	}
 }
 
-func (s *State) SetNode(node *node.Node) {
+func (s *State) SetNode(node *ast.Node) {
 	s.Node = node
 }
 
-func (s *State) SetParent(parent *node.Node) {
+func (s *State) SetParent(parent *ast.Node) {
 	s.Parent = parent
 }
 
@@ -56,7 +56,7 @@ func (s *State) Print() {
 
 func (s *State) print(printedList map[int]*State) {
 	if s.Node != nil {
-		if s.Node.Type == node.End {
+		if s.Node.Type == ast.End {
 			fmt.Println(fmt.Sprintf(
 				"final state found. index: %d, nodeType: %s",
 				s.Index, s.Node.Type.String()))
@@ -64,7 +64,7 @@ func (s *State) print(printedList map[int]*State) {
 		}
 
 		fmt.Println(fmt.Sprintf(
-			"Node is not null. index: %d, node type: %s",
+			"Node is not null. index: %d, ast type: %s",
 			s.Index, s.Node.Type.String()))
 	}
 

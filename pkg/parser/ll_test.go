@@ -9,15 +9,16 @@ import (
 )
 
 var (
-	testNFA *NFA
+	testLLParser *LLParser
 )
 
 func init() {
 	initTestNFA()
+	initTestLLParser()
 }
 
-func initTestNFA() {
-	tokenList := []*token.Token{
+func initTokenList() []*token.Token {
+	return []*token.Token{
 		token.NewToken(token.Select, "select"),
 		token.NewToken(token.Identifier, "col1"),
 		token.NewToken(token.Plus, "+"),
@@ -38,23 +39,25 @@ func initTestNFA() {
 		token.NewToken(token.StringLiteral, "'abc'"),
 		token.NewToken(token.End, constant.EmptyString),
 	}
-
-	testNFA = NewNFA(tokenList)
 }
 
-func TestNFA_All(t *testing.T) {
-	TestNFA_Print(t)
-	TestNFA_Match(t)
+func initTestLLParser() {
+	testLLParser = NewLLParser(initTokenList())
 }
 
-func TestNFA_Print(t *testing.T) {
-	testNFA.Print()
+func TestLLParser_All(t *testing.T) {
+	TestLLParser_Print(t)
+	TestLLParser_Match(t)
 }
 
-func TestNFA_Match(t *testing.T) {
+func TestLLParser_Print(t *testing.T) {
+	// testLLParser.Print()
+}
+
+func TestLLParser_Match(t *testing.T) {
 	asst := assert.New(t)
 
-	rootNode, err := testNFA.Match()
+	rootNode, err := testLLParser.Match()
 	asst.Nil(err, "test Match() failed")
 	rootNode.PrintChildren()
 }
