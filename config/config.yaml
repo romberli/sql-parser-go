@@ -65,8 +65,8 @@ parse:
     # description: specify the finite automata of the parser
     # type: string
     # available: [nfa, ll]
-    # default: nfa
-    finiteAutomata: nfa
+    # default: ll
+    finiteAutomata: ll
 
 # description: specify the sql text
 # type: string

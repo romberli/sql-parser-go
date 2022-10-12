@@ -49,10 +49,10 @@ func SetDefaultConfig(baseDir string) {
 	viper.SetDefault(LogMaxDaysKey, log.DefaultLogMaxDays)
 	viper.SetDefault(LogMaxBackupsKey, log.DefaultLogMaxBackups)
 	// lex
-	viper.SetDefault(LexFiniteAutomataKey, DefaultFiniteAutomata)
+	viper.SetDefault(LexFiniteAutomataKey, DefaultLexFiniteAutomata)
 	// parse
-	viper.SetDefault(ParseLexerFiniteAutomataKey, DefaultFiniteAutomata)
-	viper.SetDefault(ParseParserFiniteAutomataKey, DefaultFiniteAutomata)
+	viper.SetDefault(ParseLexerFiniteAutomataKey, DefaultParseLexerFiniteAutomata)
+	viper.SetDefault(ParseParserFiniteAutomataKey, DefaultParseParserFiniteAutomata)
 }
 
 // ValidateConfig validates if the configuration is valid
