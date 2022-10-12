@@ -5,38 +5,40 @@ import (
 )
 
 const (
-	ErrPrintHelpInfo              = 400001
-	ErrEmptyLogFileName           = 400002
-	ErrNotValidLogFileName        = 400003
-	ErrNotValidLogLevel           = 400004
-	ErrNotValidLogFormat          = 400005
-	ErrNotValidLogMaxSize         = 400006
-	ErrNotValidLogMaxDays         = 400007
-	ErrNotValidLogMaxBackups      = 400008
-	ErrNotValidServerPort         = 400009
-	ErrNotValidServerAddr         = 400010
-	ErrNotValidPidFile            = 400011
-	ErrNotValidServerReadTimeout  = 400012
-	ErrNotValidServerWriteTimeout = 400013
-	ErrValidateConfig             = 400014
-	ErrInitDefaultConfig          = 400015
-	ErrReadConfigFile             = 400016
-	ErrOverrideCommandLineArgs    = 400017
-	ErrAbsoluteLogFilePath        = 400018
-	ErrInitLogger                 = 400019
-	ErrBaseDir                    = 400020
-	ErrInitConfig                 = 400021
-	ErrCheckServerPid             = 400022
-	ErrCheckServerRunningStatus   = 400023
-	ErrServerIsRunning            = 400024
-	ErrStartAsForeground          = 400025
-	ErrSavePidToFile              = 400026
-	ErrKillServerWithPid          = 400027
-	ErrKillServerWithPidFile      = 400028
-	ErrGetPidFromPidFile          = 400029
-	ErrSetSid                     = 400030
-	ErrRemovePidFile              = 400031
-	ErrNotValidFiniteAutomata     = 400032
+	ErrPrintHelpInfo                     = 400001
+	ErrEmptyLogFileName                  = 400002
+	ErrNotValidLogFileName               = 400003
+	ErrNotValidLogLevel                  = 400004
+	ErrNotValidLogFormat                 = 400005
+	ErrNotValidLogMaxSize                = 400006
+	ErrNotValidLogMaxDays                = 400007
+	ErrNotValidLogMaxBackups             = 400008
+	ErrNotValidServerPort                = 400009
+	ErrNotValidServerAddr                = 400010
+	ErrNotValidPidFile                   = 400011
+	ErrNotValidServerReadTimeout         = 400012
+	ErrNotValidServerWriteTimeout        = 400013
+	ErrValidateConfig                    = 400014
+	ErrInitDefaultConfig                 = 400015
+	ErrReadConfigFile                    = 400016
+	ErrOverrideCommandLineArgs           = 400017
+	ErrAbsoluteLogFilePath               = 400018
+	ErrInitLogger                        = 400019
+	ErrBaseDir                           = 400020
+	ErrInitConfig                        = 400021
+	ErrCheckServerPid                    = 400022
+	ErrCheckServerRunningStatus          = 400023
+	ErrServerIsRunning                   = 400024
+	ErrStartAsForeground                 = 400025
+	ErrSavePidToFile                     = 400026
+	ErrKillServerWithPid                 = 400027
+	ErrKillServerWithPidFile             = 400028
+	ErrGetPidFromPidFile                 = 400029
+	ErrSetSid                            = 400030
+	ErrRemovePidFile                     = 400031
+	ErrNotValidLexFiniteAutomata         = 400032
+	ErrNotValidParseLexerFiniteAutomata  = 400033
+	ErrNotValidParseParserFiniteAutomata = 400034
 )
 
 func initErrorMessage() {
@@ -71,5 +73,7 @@ func initErrorMessage() {
 	Messages[ErrGetPidFromPidFile] = config.NewErrMessage(DefaultMessageHeader, ErrGetPidFromPidFile, "get pid from pid file failed. pid file: %s.\n%s")
 	Messages[ErrSetSid] = config.NewErrMessage(DefaultMessageHeader, ErrSetSid, "set sid failed when daemonizing server")
 	Messages[ErrRemovePidFile] = config.NewErrMessage(DefaultMessageHeader, ErrRemovePidFile, "remove pid file failed. pid file: %s.\n%s")
-	Messages[ErrNotValidFiniteAutomata] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidFiniteAutomata, "finite automata must be one of [nfa, dfa], %s is not valid")
+	Messages[ErrNotValidLexFiniteAutomata] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidLexFiniteAutomata, "lex finite automata must be one of [nfa, dfa], %s is not valid")
+	Messages[ErrNotValidParseLexerFiniteAutomata] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidParseLexerFiniteAutomata, "parse lexer finite automata must be one of [nfa, dfa], %s is not valid")
+	Messages[ErrNotValidParseParserFiniteAutomata] = config.NewErrMessage(DefaultMessageHeader, ErrNotValidParseParserFiniteAutomata, "parse parser finite automata must be one of [nfa, ll], %s is not valid")
 }

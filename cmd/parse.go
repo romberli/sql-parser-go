@@ -32,7 +32,7 @@ import (
 var parseCmd = &cobra.Command{
 	Use:   "parse",
 	Short: "parse command",
-	Long:  `use parse to match input string`,
+	Long:  `use parse to match tokens`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// init config
 		err := initConfig()
@@ -40,28 +40,40 @@ var parseCmd = &cobra.Command{
 			fmt.Println(message.NewMessage(message.ErrInitConfig, err.Error()).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
-		var l *lexer.Lexer
-		var p *parser.Parser
 
-		fa := viper.GetString(config.FiniteAutomataKey)
-		switch fa {
+		var l *lexer.Lexer
+		lexerFA := viper.GetString(config.ParseLexerFiniteAutomataKey)
+		switch lexerFA {
 		case config.NFA:
 			l = lexer.NewLexer(lexer.NewNFAWithDefault())
-			tokens := l.Lex(viper.GetString(config.SQLKey))
-			p = parser.NewParser(parser.NewNFA(tokens))
-		case config.LLOne:
+		case config.DFA:
 			l = lexer.NewLexer(lexer.NewDFAWithDefault())
-			tokens := l.Lex(viper.GetString(config.SQLKey))
+		default:
+			fmt.Println(message.NewMessage(message.ErrNotValidParseLexerFiniteAutomata, viper.GetString(config.ParseLexerFiniteAutomataKey)).Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
+		}
+
+		tokens := l.Lex(sql)
+
+		var p *parser.Parser
+
+		parserFA := viper.GetString(config.ParseParserFiniteAutomataKey)
+		switch parserFA {
+		case config.NFA:
+			p = parser.NewParser(parser.NewNFA(tokens))
+		case config.LL:
 			p = parser.NewParser(parser.NewLLOne(tokens))
 		default:
-			fmt.Println(message.NewMessage(message.ErrNotValidFiniteAutomata, viper.GetString(config.FiniteAutomataKey)).Error())
+			fmt.Println(message.NewMessage(message.ErrNotValidParseParserFiniteAutomata, viper.GetString(config.ParseParserFiniteAutomataKey)).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
 		astNode, err := p.Parse()
 		if err != nil {
 			fmt.Println(err.Error())
+			os.Exit(constant.DefaultAbnormalExitCode)
 		}
+
 		astNode.PrintChildren()
 	},
 }
@@ -78,4 +90,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// parseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// finite automata
+	parseCmd.Flags().StringVar(&parseLexerFiniteAutomata, "lexer-finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultFiniteAutomata))
+	parseCmd.Flags().StringVar(&parseParserFiniteAutomata, "parser-finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultFiniteAutomata))
 }

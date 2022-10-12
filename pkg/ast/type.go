@@ -107,47 +107,47 @@ func (t Type) String() string {
 	case StatementTerminator:
 		return "StatementTerminator"
 	case SelectKeyword:
-		return "SelectKeyword"
+		return "selectKeyword"
 	case FromKeyword:
-		return "FromKeyword"
+		return "fromKeyword"
 	case AsKeyword:
-		return "AsKeyword"
+		return "asKeyword"
 	case WhereKeyword:
-		return "WhereKeyword"
+		return "whereKeyword"
 	case AndKeyword:
-		return "AndKeyword"
+		return "andKeyword"
 	case OrKeyword:
-		return "OrKeyword"
+		return "orKeyword"
 	case Identifier:
-		return "Identifier"
+		return "identifier"
 	case StringLiteral:
-		return "StringLiteral"
+		return "stringLiteral"
 	case NumberLiteral:
-		return "NumberLiteral"
+		return "numberLiteral"
 	case SemicolonOperator:
-		return "SemicolonOperator"
+		return "semicolonOperator"
 	case CommaOperator:
-		return "CommaOperator"
+		return "commaOperator"
 	case PlusOperator:
-		return "PlusOperator"
+		return "plusOperator"
 	case MinusOperator:
-		return "MinusOperator"
+		return "minusOperator"
 	case GreaterOrEqualOperator:
-		return "GreaterOrEqualOperator"
+		return "greaterOrEqualOperator"
 	case GreaterThanOperator:
-		return "GreaterThanOperator"
+		return "greaterThanOperator"
 	case LessOrEqualOperator:
-		return "LessOrEqualOperator"
+		return "lessOrEqualOperator"
 	case LessThanOperator:
-		return "LessThanOperator"
+		return "lessThanOperator"
 	case EqualOperator:
-		return "EqualOperator"
+		return "equalOperator"
 	case NotEqual1Operator:
-		return "NotEqual1Operator"
+		return "notEqual1Operator"
 	case NotEqual2Operator:
-		return "NotEqual2Operator"
+		return "notEqual2Operator"
 	case End:
-		return "End"
+		return "end"
 	default:
 		return "Unknown"
 	}

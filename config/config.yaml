@@ -43,11 +43,30 @@ log:
   # default: 5
   maxBackups: 5
 
-# description: specify the finite automata
-# type: string
-# available: [nfa, dfa]
-# default: nfa
-finiteAutomata: nfa
+# lex subcommand section
+lex:
+  # description: specify the finite automata of the lexer
+  # type: string
+  # available: [nfa, dfa]
+  # default: nfa
+  finiteAutomata: nfa
+
+# parse subcommand section
+parse:
+  # specify the lexer configuration
+  lexer:
+    # description: specify the finite automata of the lexer
+    # type: string
+    # available: [nfa, dfa]
+    # default: nfa
+    finiteAutomata: nfa
+  # specify the parser configuration
+  parser:
+    # description: specify the finite automata of the parser
+    # type: string
+    # available: [nfa, ll]
+    # default: nfa
+    finiteAutomata: nfa
 
 # description: specify the sql text
 # type: string

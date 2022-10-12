@@ -62,65 +62,65 @@ var (
 func (t Type) String() string {
 	switch t {
 	case Select:
-		return "SelectKeyword"
+		return "selectKeyword"
 	case From:
-		return "FromKeyword"
+		return "fromKeyword"
 	case As:
-		return "AsKeyword"
+		return "asKeyword"
 	case And:
-		return "AndKeyword"
+		return "andKeyword"
 	case Or:
-		return "OrKeyword"
+		return "orKeyword"
 	case Where:
-		return "WhereKeyword"
+		return "whereKeyword"
 	case Identifier:
-		return "Identifier"
+		return "identifier"
 	case GE:
-		return "GreaterOrEqual"
+		return "greaterOrEqual"
 	case GT:
-		return "GreaterThan"
+		return "greaterThan"
 	case LE:
-		return "LessOrEqual"
+		return "lessOrEqual"
 	case LT:
-		return "LessThan"
+		return "lessThan"
 	case Equal:
-		return "Equal"
+		return "equal"
 	case NotEqual1, NotEqual2:
-		return "NotEqual"
+		return "notEqual"
 	case Plus:
-		return "Plus"
+		return "plus"
 	case Minus:
-		return "Minus"
+		return "minus"
 	case Multiply:
-		return "Multiply"
+		return "multiply"
 	case Divide:
-		return "Divide"
+		return "divide"
 	case Mod:
-		return "Mod"
+		return "mod"
 	case NumberLiteral:
-		return "NumberLiteral"
+		return "numberLiteral"
 	case StringLiteral:
-		return "StringLiteral"
+		return "stringLiteral"
 	case LeftParenthesis:
-		return "LeftParenthesis"
+		return "leftParenthesis"
 	case RightParenthesis:
-		return "RightParenthesis"
+		return "rightParenthesis"
 	case Comma:
-		return "Comma"
+		return "comma"
 	case Semicolon:
-		return "Semicolon"
+		return "semicolon"
 	case SingleQuote:
-		return "SingleQuote"
+		return "singleQuote"
 	case WhiteSpace:
-		return "WhiteSpace"
+		return "whiteSpace"
 	case Epsilon:
 		return "ε"
 	case End:
-		return "End"
+		return "end"
 	case Error:
-		return "Error"
+		return "error"
 	default:
-		return "Unknown"
+		return "unknown"
 	}
 }
 
@@ -150,5 +150,5 @@ func NewToken(tokenType Type, lexeme string) *Token {
 
 // String returns the string representation of the token
 func (t *Token) String() string {
-	return fmt.Sprintf("{tokenType: %s, lexeme: %s}", t.Type.String(), t.Lexeme)
+	return fmt.Sprintf(`{tokenType: %s, lexeme: %s}`, t.Type.String(), t.Lexeme)
 }

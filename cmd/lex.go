@@ -42,14 +42,14 @@ var lexCmd = &cobra.Command{
 
 		var l *lexer.Lexer
 
-		fa := viper.GetString(config.FiniteAutomataKey)
+		fa := viper.GetString(config.LexFiniteAutomataKey)
 		switch fa {
 		case config.NFA:
 			l = lexer.NewLexer(lexer.NewNFAWithDefault())
 		case config.DFA:
 			l = lexer.NewLexer(lexer.NewDFAWithDefault())
 		default:
-			fmt.Println(message.NewMessage(message.ErrNotValidFiniteAutomata, viper.GetString(config.FiniteAutomataKey)).Error())
+			fmt.Println(message.NewMessage(message.ErrNotValidLexFiniteAutomata, viper.GetString(config.LexFiniteAutomataKey)).Error())
 			os.Exit(constant.DefaultAbnormalExitCode)
 		}
 
@@ -69,9 +69,10 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// lexCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// finite automata
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// lexCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	lexCmd.Flags().StringVar(&lexFiniteAutomata, "finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultFiniteAutomata))
 }

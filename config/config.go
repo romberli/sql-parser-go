@@ -32,9 +32,10 @@ import (
 )
 
 var (
-	ValidLogLevels      = []string{"debug", "info", "warn", "warning", "error", "fatal"}
-	ValidLogFormats     = []string{"text", "json"}
-	ValidFiniteAutomata = []string{NFA, DFA, LLOne}
+	ValidLogLevels                 = []string{"debug", "info", "warn", "warning", "error", "fatal"}
+	ValidLogFormats                = []string{"text", "json"}
+	ValidLexFiniteAutomata         = []string{NFA, DFA}
+	ValidParseParserFiniteAutomata = []string{NFA, LL}
 )
 
 // SetDefaultConfig set default configuration, it is the lowest priority
@@ -47,8 +48,11 @@ func SetDefaultConfig(baseDir string) {
 	viper.SetDefault(LogMaxSizeKey, log.DefaultLogMaxSize)
 	viper.SetDefault(LogMaxDaysKey, log.DefaultLogMaxDays)
 	viper.SetDefault(LogMaxBackupsKey, log.DefaultLogMaxBackups)
-	// finite automata
-	viper.SetDefault(FiniteAutomataKey, DefaultFiniteAutomata)
+	// lex
+	viper.SetDefault(LexFiniteAutomataKey, DefaultFiniteAutomata)
+	// parse
+	viper.SetDefault(ParseLexerFiniteAutomataKey, DefaultFiniteAutomata)
+	viper.SetDefault(ParseParserFiniteAutomataKey, DefaultFiniteAutomata)
 }
 
 // ValidateConfig validates if the configuration is valid
@@ -61,8 +65,14 @@ func ValidateConfig() (err error) {
 		merr = multierror.Append(merr, err)
 	}
 
-	// validate finite automata
-	err = ValidateFiniteAutomata()
+	// validate lex
+	err = ValidateLex()
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	}
+
+	// validate parse
+	err = ValidateParse()
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	}
@@ -156,20 +166,55 @@ func ValidateLog() error {
 	return merr.ErrorOrNil()
 }
 
-func ValidateFiniteAutomata() error {
+func ValidateLex() error {
 	var valid bool
 
 	merr := &multierror.Error{}
 
-	fa, err := cast.ToStringE(viper.Get(FiniteAutomataKey))
+	// validate lex.finiteAutomata
+	fa, err := cast.ToStringE(viper.Get(LexFiniteAutomataKey))
 	if err != nil {
 		merr = multierror.Append(merr, err)
 	} else {
-		valid, err = common.ElementInSlice(ValidFiniteAutomata, fa)
+		valid, err = common.ElementInSlice(ValidLexFiniteAutomata, fa)
 		if err != nil {
 			merr = multierror.Append(merr, err)
 		} else if !valid {
-			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidFiniteAutomata, valid))
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidLexFiniteAutomata, valid))
+		}
+	}
+
+	return merr.ErrorOrNil()
+}
+
+func ValidateParse() error {
+	var valid bool
+
+	merr := &multierror.Error{}
+
+	// validate parse.lexer.finiteAutomata
+	lexerFA, err := cast.ToStringE(viper.Get(ParseLexerFiniteAutomataKey))
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	} else {
+		valid, err = common.ElementInSlice(ValidLexFiniteAutomata, lexerFA)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		} else if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidParseLexerFiniteAutomata, lexerFA))
+		}
+	}
+
+	// validate parse.parserFiniteAutomata
+	parserFA, err := cast.ToStringE(viper.Get(ParseParserFiniteAutomataKey))
+	if err != nil {
+		merr = multierror.Append(merr, err)
+	} else {
+		valid, err = common.ElementInSlice(ValidParseParserFiniteAutomata, parserFA)
+		if err != nil {
+			merr = multierror.Append(merr, err)
+		} else if !valid {
+			merr = multierror.Append(merr, message.NewMessage(message.ErrNotValidParseParserFiniteAutomata, parserFA))
 		}
 	}
 

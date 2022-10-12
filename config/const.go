@@ -35,19 +35,21 @@ const (
 	MaxLogMaxBackups      = constant.MaxInt
 	NFA                   = "nfa"
 	DFA                   = "dfa"
-	LLOne                 = "ll"
+	LL                    = "ll"
 	DefaultFiniteAutomata = NFA
 )
 
 // configuration constant
 const (
-	ConfKey           = "config"
-	LogFileNameKey    = "log.fileName"
-	LogLevelKey       = "log.level"
-	LogFormatKey      = "log.format"
-	LogMaxSizeKey     = "log.maxSize"
-	LogMaxDaysKey     = "log.maxDays"
-	LogMaxBackupsKey  = "log.maxBackups"
-	FiniteAutomataKey = "finiteAutomata"
-	SQLKey            = "sql"
+	ConfKey                      = "config"
+	LogFileNameKey               = "log.fileName"
+	LogLevelKey                  = "log.level"
+	LogFormatKey                 = "log.format"
+	LogMaxSizeKey                = "log.maxSize"
+	LogMaxDaysKey                = "log.maxDays"
+	LogMaxBackupsKey             = "log.maxBackups"
+	LexFiniteAutomataKey         = "lex.finiteAutomata"
+	ParseLexerFiniteAutomataKey  = "parse.Lexer.finiteAutomata"
+	ParseParserFiniteAutomataKey = "parse.parser.finiteAutomata"
+	SQLKey                       = "sql"
 )
