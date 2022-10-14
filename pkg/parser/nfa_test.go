@@ -38,7 +38,7 @@ func initTokenList() []*token.Token {
 		token.NewToken(token.Identifier, "col1"),
 		token.NewToken(token.Equal, "="),
 		token.NewToken(token.StringLiteral, "'abc'"),
-		token.NewToken(token.StringLiteral, "'abc'"),
+		// token.NewToken(token.StringLiteral, "'abc'"),
 	}
 }
 

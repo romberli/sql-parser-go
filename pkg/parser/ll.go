@@ -64,10 +64,12 @@ func (llo *LLOne) match(n *ast.Node) error {
 			for _, child := range children {
 				childFirst := child.GetFirstSet()
 			Loop:
+				// look ahead the next token to choose which path to go
 				if token.TypeExists(childFirst, llo.lookAhead().Type) {
 					// as there is no conflict, always can add child
 					n.AddChildren(child)
 					if child.IsTerminal() {
+						// matched a terminal node
 						t := llo.readNext()
 						if child.Type.GetTokenType() != t.Type {
 							return errors.Errorf("match terminal failed. child type: %s, token type: %s", child.Type.String(), t.String())
@@ -76,13 +78,14 @@ func (llo *LLOne) match(n *ast.Node) error {
 						child.SetToken(t)
 						continue
 					}
-
+					// this is a non-terminal, need to match it recursively
 					err := llo.match(child)
 					if err != nil {
 						return err
 					}
 
 					if child.Max == -1 {
+						// this node may repeat for several times
 						goto Loop
 					}
 
@@ -90,17 +93,20 @@ func (llo *LLOne) match(n *ast.Node) error {
 				}
 
 				if child.MayEpsilon() {
+					// next token is not in the first set, but this node may be epsilon
 					continue
 				}
 
+				// neither in the first set nor may epsilon
 				return errors.Errorf("matching token failed: node type: %s, matched tokens: %v, next token: %s", n.Type.String(), llo.Tokens[:llo.Index], llo.Tokens[llo.Index])
 			}
 
+			// all children are matched
 			return nil
 		}
-
 	}
 
+	// next token is not in any of the first set list
 	return errors.Errorf("matching token failed: node type: %s, matched tokens: %v, next token: %s", n.Type.String(), llo.Tokens[:llo.Index], llo.Tokens[llo.Index])
 }
 

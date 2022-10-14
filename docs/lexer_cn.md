@@ -1,10 +1,10 @@
 # 什么是SQL解析器
-SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法规则, 并生成抽象语法树(AST), 供后续优化器进行优化, 它具有词法分析, 语法分析, 语义分析等流程。
+SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法规则, 并生成抽象语法树(AST), 供后续优化器进行优化, 它具有词法分析, 语法分析, 语义分析等流程.
 
 ![MySQL体系结构](image/mysql_architecture.png "图1: MySQL体系结构")
 
 ## 词法分析(lexical analysis)
-词法分析按单个字符读取SQL文本, 按照一定词法规则识别各类单词, 将输入文本转换为token序列, 进行词法分析的程序或者函数叫作词法分析器(lexical analyzer, 简称lexer)或者扫描器(scanner).
+词法分析按单个字符读取SQL文本, 按照一定词法规则识别各类单词, 将输入文本转换为token序列, 进行词法分析的程序叫作词法分析器(lexical analyzer, 简称lexer)或者扫描器(scanner).
 
 例: select col1, col2 from tab1 where id = 1+2
 
@@ -13,7 +13,7 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 这里的select, col1, col2, from等被切分出来的输入文本的子串称为词素(lexeme), 关键字, 标识符, 运算符, 字面量等称为token类型, 词素与类型合在一起组成token, 词法分析阶段主要就是对输入的字符流进行适当地切分, 识别token类型, 最后输出token列表, 供后续语法分析使用. 词法分析的难点在于适当地对输入字符进行分隔, 还要考虑一些特殊情况, 有时需要保存当前状态, 必要时进行回溯等情况.
 
 ## 语法分析(syntax analysis)
-语法分析有时也叫parsing, 它根据上一步生成的token序列检查SQL语句是否符合该数据库支持的语法结构, 它是上下文无关的检查, 进行语法分析的程序或函数叫作语法分析器(syntax analyzer)或者解析器(parser).
+语法分析有时也叫parsing, 它根据上一步生成的token序列检查SQL语句是否符合该数据库支持的语法结构, 通过一定算法分析输入的token流, 最终将它转化为抽象语法树(abstract syntax Tree, 简称AST). 它是上下文无关的检查, 进行语法分析的程序叫作语法分析器(syntax analyzer)或者解析器(parser).
 
 例: sel col1 from tab1
 
@@ -40,7 +40,7 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 - 支持的比较运算符有7种: >, >=, <, <=, = , !=, <>
 - 表达式仅支持加与减, 且不支持使用括号来改变优先级, 例如: 'abc', 123, 123 + 456
 - 不支持函数, 变量, if else, case when, 子查询, join, 注释, group by, order by, limit, offset等复杂用法
-- 多个where条件仅支持and, 不支持or和in, 不支持括号
+- 多个where条件仅支持and, 不支持in, 不支持括号
 - 当使用空白字符时允许多个相同或不同的空白符连续出现
 
 ## 解析流程
@@ -187,7 +187,7 @@ go build -o parser main.go
 ## 使用方法
 #### 使用NFA进行解析
 ```
-./parser nfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
+./parser lex --finite-automata=nfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
 ```
 输出如下:
 ```text
@@ -210,7 +210,7 @@ go build -o parser main.go
 ```
 #### 使用DFA进行解析
 ```
-./parser dfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
+./parser lex --finite-automata=dfa --sql="select col1 as c1, col2 from t01 where id <= 100 and col1 = 'abc'"
 ```
 输出如下:
 ```text
