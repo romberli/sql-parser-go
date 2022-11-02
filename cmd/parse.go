@@ -92,5 +92,5 @@ func init() {
 	// parseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	// finite automata
 	parseCmd.Flags().StringVar(&parseLexerFiniteAutomata, "lexer-finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultParseLexerFiniteAutomata))
-	parseCmd.Flags().StringVar(&parseParserFiniteAutomata, "parser-finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultParseParserFiniteAutomata))
+	parseCmd.Flags().StringVar(&parseParserFiniteAutomata, "parser-finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(available: %s, %s.default: %s)", config.NFA, config.LL, config.DefaultParseParserFiniteAutomata))
 }

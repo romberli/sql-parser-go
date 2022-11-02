@@ -74,5 +74,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// lexCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	lexCmd.Flags().StringVar(&lexFiniteAutomata, "finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(default: %s)", config.DefaultLexFiniteAutomata))
+	lexCmd.Flags().StringVar(&lexFiniteAutomata, "finite-automata", constant.DefaultRandomString, fmt.Sprintf("specify the finite automata(available: %s, %s. default: %s)", config.NFA, config.DFA, config.DefaultLexFiniteAutomata))
 }

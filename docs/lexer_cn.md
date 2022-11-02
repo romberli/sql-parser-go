@@ -39,7 +39,7 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 - 数字字面量仅支持无符号整数
 - 支持的比较运算符有7种: >, >=, <, <=, = , !=, <>
 - 表达式仅支持加与减, 且不支持使用括号来改变优先级, 例如: 'abc', 123, 123 + 456
-- 不支持函数, 变量, if else, case when, 子查询, join, 注释, group by, order by, limit, offset等复杂用法
+- 不支持函数, 变量, if else, case when, 子查询, join, union, 注释, group by, order by, limit, offset等复杂用法
 - 多个where条件仅支持and, 不支持in, 不支持括号
 - 当使用空白字符时允许多个相同或不同的空白符连续出现
 
@@ -60,10 +60,10 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 - 关键字(keyword): select, as, from, where, and
 - 标识符(identifier): 一个或多个小写英文字符或数字或下划线组成, 且不允许由纯数字组成
 - 比较运算符(comparisonOperator): >, >=, <, <=, = , !=, <>
-- 算数运算符(arithmeticOperator): +, -, *, /, %
-- 数字字面量(numberLiteral): 有纯数字组成, 例如: 123等
+- 算数运算符(arithmeticOperator): +, -
+- 数字字面量(numberLiteral): 由纯数字组成, 例如: 123等
 - 字符串字面量(stringLiteral): 由单引号包裹的小写英文字符或数字或下划线组成, 例如: 'abc', 'aaa_123_bbb'等
-- 分隔符(separator): 逗号(,), 分号(;), 左括号((), 右括号()), 单引号(')
+- 分隔符(separator): 逗号(,), 分号(;), 单引号(')
 - 空白符(whitespace): 空格( ), 回车符(\r), 换行符(\n), 制表符(\t)
 
 具体实现上, token类型会有进一步的细分, 以便后续的语法分析中使用, 例如关键字会进一步细分成selectKeyword, asKeyword, fromKeyword等, 分隔符会细分成LeftBrace, RightBrace等
@@ -81,7 +81,7 @@ SQL解析器对输入的SQL文本进行切分, 检查是否符合一定的语法
 
 其中|表示或, +表示一个或多个, *表示0个或多个
 
-#### 歧义性
+#### 歧义性(Ambiguity)
 针对输入字符流, 如果存在多种切分方法, 则说明存在歧义性(或者叫二义性), 主要存在2种可能性:
 - 可按不同长度进行切分
 
